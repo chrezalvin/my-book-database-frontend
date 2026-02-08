@@ -14,6 +14,7 @@ import BookCard from "../../components/BookCard";
 import PaginationControls from "../../components/PaginationControl";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAppSelector } from "../../hooks/customRedux";
+import BookSearch from "../../components/BookSearch";
 
 function BooksPage() {
     const {page} = useParams<{page?: string}>();
@@ -33,6 +34,8 @@ function BooksPage() {
     const [selectedBookToDelete, setSelectedBookToDelete] = useState<Book | null>(null);
     const [isDeleting, setIsDeleting] = useState<boolean>(false);
     const [deleteError, setDeleteError] = useState<string | null>(null);
+
+    const [searchKeyword, setSearchKeyword] = useState<string>("");
 
     function gotoNextPage(){
       navigate(`/books/page/${currentPage + 1}`);
@@ -64,11 +67,15 @@ function BooksPage() {
       }
     }
 
-    async function fetchBooks(){
+    async function fetchBooks(setPage?: number){
+      if(setPage !== undefined){
+        navigate(`/books/page/${setPage}`);
+      }
+
       try{
         setIsLoading(true);
 
-        const books = await getBooksByPage(currentPage);
+        const books = await getBooksByPage(currentPage, searchKeyword);
 
         setBooks(books);
       }
@@ -81,13 +88,21 @@ function BooksPage() {
     }
 
     useEffect(() => {
-      fetchBooks();
+      fetchBooks(0);
     }, [currentPage]);
+
+    // basic debouncing for search
+    useEffect(() => {
+      const delayDebounceFn = setTimeout(() => {
+        fetchBooks();
+      }, 500);
+      return () => clearTimeout(delayDebounceFn);
+    }, [searchKeyword]);
 
   return (
     <>
       {
-        (!isLoading || allowedToEdit) && (
+        (!isLoading && allowedToEdit) && (
           <Button
             className="mb-3"
             onClick={() => navigate("/books/create")}
@@ -97,6 +112,12 @@ function BooksPage() {
           </Button>
         )
       }
+
+      {/* search */}
+      <BookSearch 
+        onChange={(value) => setSearchKeyword(value)}
+        value={searchKeyword}
+      />
 
       {isLoading && (
         <div className="text-center py-5">

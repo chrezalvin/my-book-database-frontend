@@ -75,6 +75,15 @@ function BooksEditPage() {
             edition,
         };
 
+        // trim all string fields
+        for(const key in updatedBookData){
+            const k = key as keyof BookFormData;
+            const data = updatedBookData[k];
+            if(typeof data === "string"){
+              (updatedBookData[k] as string) = data.trim();
+            }
+        }
+
         try{
             setError(null);
             setIsSubmitting(true);
@@ -154,6 +163,46 @@ function BooksEditPage() {
               name="summary"
               value={summary}
               onChange={(e) => setSummary(e.target.value)}
+            />
+          </Form.Group>
+
+          <Form.Group className="mb-3">
+            <Form.Label>Language</Form.Label>
+            <Form.Control
+              type="text"
+              name="language"
+              value={language}
+              onChange={(e) => setLanguage(e.target.value)}
+            />
+          </Form.Group>
+
+          <Form.Group className="mb-3">
+            <Form.Label>Genre</Form.Label>
+            <Form.Control
+              type="text"
+              name="genre"
+              value={genre}
+              onChange={(e) => setGenre(e.target.value)}
+            />
+          </Form.Group>
+
+          <Form.Group className="mb-3">
+            <Form.Label>Edition</Form.Label>
+            <Form.Control
+              type="text"
+              name="edition"
+              value={edition ?? ""}
+              onChange={(e) => setEdition(e.target.value || null)}
+            />
+          </Form.Group>
+
+          <Form.Group className="mb-3">
+            <Form.Label>ISBN</Form.Label>
+            <Form.Control
+              type="text"
+              name="isbn"
+              value={isbn ?? ""}
+              onChange={(e) => setIsbn(e.target.value || null)}
             />
           </Form.Group>
 

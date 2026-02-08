@@ -16,6 +16,7 @@ This project was made in:
 
 ## List of Features
 - typescript-based type checking
+- search book by name
 - `redux` state management (for user data)
 - localstorage JWT storing system
 - bootstrap styling via `react-bootstrap`
