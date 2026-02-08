@@ -8,15 +8,15 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 3. for static site, do `npm run build` and then do `serve -s build`
 4. for development site do `npm start`
 
-## Available Scripts
+## Prerequiste
+This project was made in:
+- OS: Windows
+- Node: v18.18.2
+- NPM: 10.5.0
 
-In the project directory, you can run:
-
-### `npm start`
-
-Runs the app in the development mode.
-
-### `npm run build`
-
-Builds the app for production to the `build` folder
-
+## List of Features
+- typescript-based type checking
+- `redux` state management (for user data)
+- localstorage JWT storing system
+- bootstrap styling via `react-bootstrap`
+- page management via `react-router-dom`
