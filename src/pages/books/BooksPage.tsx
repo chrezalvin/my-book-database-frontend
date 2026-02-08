@@ -88,13 +88,13 @@ function BooksPage() {
     }
 
     useEffect(() => {
-      fetchBooks(0);
+      fetchBooks();
     }, [currentPage]);
 
     // basic debouncing for search
     useEffect(() => {
       const delayDebounceFn = setTimeout(() => {
-        fetchBooks();
+        fetchBooks(0);
       }, 500);
       return () => clearTimeout(delayDebounceFn);
     }, [searchKeyword]);
