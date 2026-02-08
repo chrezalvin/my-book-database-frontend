@@ -2,6 +2,9 @@
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
+## This Website is Live!
+[click here](https://my-book-database-frontend.onrender.com) to access the static website
+
 ## How To Run This Project Locally
 1. start the [backend](https://github.com/chrezalvin/my-book-database-backend) first
 2. copy .env.example file into .env (default is fine for local)
