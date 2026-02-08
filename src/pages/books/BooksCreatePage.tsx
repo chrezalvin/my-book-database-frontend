@@ -13,6 +13,10 @@ function BooksCreatePage() {
     const [publicationYear, setPublicationYear] =  useState<number>(2023);
     const [summary, setSummary] =  useState("");
     const [coverFile, setCoverFile] =  useState<File | null>(null);
+    const [genre, setGenre] =  useState("fantasy");
+    const [language, setLanguage] =  useState("en");
+    const [edition, setEdition] =  useState<string | null>(null);
+    const [isbn, setIsbn] =  useState<string | null>(null);
 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -29,12 +33,20 @@ function BooksCreatePage() {
                 publisher,
                 publication_year: publicationYear,
                 summary,
-                genre: "fantasy",
-                language: "en",
+                genre,
+                language,
 
-                edition: null,
-                isbn: null,
+                edition,
+                isbn,
             };
+
+              for(const key in newBookData){
+                  const k = key as keyof BookFormData;
+                  const data = newBookData[k];
+                  if(typeof data === "string"){
+                    (newBookData[k] as string) = data.trim();
+                  }
+              }
 
             const newBook = await addNewBook(newBookData, coverFile ?? undefined);
 
@@ -89,6 +101,46 @@ function BooksCreatePage() {
               value={publicationYear ?? ""}
               onChange={(e) => setPublicationYear(e.target.value ? parseInt(e.target.value) : 2023)}
               required
+            />
+          </Form.Group>
+
+          <Form.Group className="mb-3">
+            <Form.Label>Genre</Form.Label>
+            <Form.Control
+              type="text"
+              name="genre"
+              value={genre}
+              onChange={(e) => setGenre(e.target.value)}
+            />
+          </Form.Group>
+
+          <Form.Group className="mb-3">
+            <Form.Label>Language</Form.Label>
+            <Form.Control
+              type="text"
+              name="language"
+              value="en"
+              onChange={(e) => setLanguage(e.target.value)}
+            />
+          </Form.Group>
+
+          <Form.Group className="mb-3">
+            <Form.Label>Edition</Form.Label>
+            <Form.Control
+              type="text"
+              name="edition"
+              value={edition ?? ""}
+              onChange={(e) => setEdition(e.target.value ? e.target.value : null)}
+            />
+          </Form.Group>
+
+          <Form.Group className="mb-3">
+            <Form.Label>ISBN</Form.Label>
+            <Form.Control
+              type="text"
+              name="isbn"
+              value={isbn ?? ""}
+              onChange={(e) => setIsbn(e.target.value ? e.target.value : null)}
             />
           </Form.Group>
 

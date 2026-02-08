@@ -1,10 +1,11 @@
 import { axiosInstance } from "../axiosConfig";
 import { Book, isBook } from "../models/Book";
 
-export async function getBooksByPage(page: number): Promise<Book[]> {
+export async function getBooksByPage(page: number, keyword?: string): Promise<Book[]> {
     const res = await axiosInstance.get(`/books`, {
         params: {
-            page: page
+            page: page,
+            keyword: keyword || "",
         }
     });
 
