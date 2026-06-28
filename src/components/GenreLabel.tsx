@@ -9,7 +9,8 @@ interface GenreLabelProps {
 export default function GenreLabel(props: GenreLabelProps) {
     return (
         <Badge 
-            bg="primary" 
+            bg="secondary"
+            className="d-inline-flex align-items-center py-2"
         >
             {props.genre.genre_name}
             {
