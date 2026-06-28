@@ -197,11 +197,24 @@ function BooksPage() {
         </Modal.Header>
 
         <Modal.Body>
+          {/* image */}
+          {
+            selectedBook?.cover_img && (
+              <div className="text-center mb-3">
+                <img 
+                  src={selectedBook.cover_img} 
+                  alt={selectedBook.title} 
+                  style={{ maxWidth: "100%", maxHeight: "400px", objectFit: "contain" }} 
+                />
+              </div>
+            )
+          }
+
           <p><strong>Author:</strong> {selectedBook?.author}</p>
           <p><strong>Publisher:</strong> {selectedBook?.publisher}</p>
           <p><strong>Year:</strong> {selectedBook?.publication_year}</p>
           <p><strong>Language:</strong> {selectedBook?.language}</p>
-          {/* <p><strong>Genre:</strong> {selectedBook?.genre}</p> */}
+          <p><strong>Genre:</strong> {selectedBook?.genres?.map(g => g.genre_name).join(", ")}</p>
           <p className="mt-3">{selectedBook?.summary}</p>
         </Modal.Body>
       </Modal>
