@@ -1,9 +1,8 @@
 import { Navbar, Container, Button, Nav } from "react-bootstrap";
-import { useNavigate } from "react-router-dom";
-import { UserPublicData } from "../API/models/UserPublicData";
+import { User } from "../API/models/User";
 
 interface HeaderProps {
-  user?: UserPublicData | null;
+  user?: User | null;
   onGoToLogin?: () => void;
   onLogout?: () => Promise<void>;
   onGoToBooks?: () => void;
