@@ -1,8 +1,8 @@
 // pages/LoginPage.tsx
 import { FormEvent, useEffect, useState } from "react";
-import { Card, Form, Button, Alert, Spinner, Nav } from "react-bootstrap";
+import { Card, Form, Button, Alert, Spinner } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
-import { authenticateUser, getUserData } from "../API/services/Authentication";
+import { AuthenticationService } from "../API/services/AuthenticationService";
 import { useAppDispatch } from "../hooks/customRedux";
 import { assignUser } from "../store/User";
 
@@ -19,7 +19,7 @@ function LoginPage() {
   useEffect(() => {
     async function checkAuthentication() {
         try{
-            const userData = await getUserData();
+            const userData = await AuthenticationService.getUserData();
             dispatch(assignUser(userData));
             navigate("/books");
         }
@@ -38,12 +38,12 @@ function LoginPage() {
     try {
       setIsLoading(true);
 
-      const isLogin = await authenticateUser(email, password);
+      const isLogin = await AuthenticationService.authenticateUser(email, password);
 
       if (!isLogin) 
         throw new Error("Authentication failed");
 
-      const userData = await getUserData();
+      const userData = await AuthenticationService.getUserData();
       dispatch(assignUser(userData));
 
       navigate("/books");
@@ -113,14 +113,15 @@ function LoginPage() {
 
         </Card.Body>
       </Card>
-        <Link 
-            to={"/books"}
-            className="mt-3 text-center"
-            onClick={() => navigate("/books")}
-            style={{ cursor: "pointer" }}
-        >
-            Go to Books Page
-        </Link>
+      
+      <Link 
+          to={"/books"}
+          className="mt-3 text-center"
+          onClick={() => navigate("/books")}
+          style={{ cursor: "pointer" }}
+      >
+          Go to Books Page
+      </Link>
     </div>
   );
 }

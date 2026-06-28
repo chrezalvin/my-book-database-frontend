@@ -16,6 +16,9 @@ export default function GenreSearch(props: GenreSearchProps) {
     const [keyword, setKeyword] = useState("");
     const [genres, setGenres] = useState<Genre[]>([]);
 
+    // only allowable when keyword is not empty and not already in the list of genres
+    const canAddNewGenre = keyword.length > 0 && !isAddingGenre && !isWaiting && props.currentGenres?.find(g => g.genre_name.toLowerCase() === keyword.toLowerCase()) === undefined;
+
     function handleInputChange(e: React.ChangeEvent<HTMLInputElement>) {
         const newKeyword = e.target.value;
         setKeyword(newKeyword);
@@ -89,7 +92,7 @@ export default function GenreSearch(props: GenreSearchProps) {
                     </InputGroup.Text>
                 )}
                 {
-                    (genres.length == 0 && keyword.length != 0) && (
+                    canAddNewGenre && (
                         <Button 
                             type="button"
                             variant="outline-secondary" 

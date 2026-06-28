@@ -2,7 +2,7 @@ import debug from "debug";
 
 import axios from "axios";
 import { BASE_URL } from "../config";
-import { logoutUser } from "./services/Authentication";
+import { AuthenticationService } from "./services/AuthenticationService";
 
 const log = debug("app:axiosConfig");
 
@@ -53,7 +53,7 @@ axiosInstance.interceptors.response.use(
         // unauthorized
         if (status === 401){
             log("unauthorized response, removing jwt from localStorage");
-            await logoutUser();
+            await AuthenticationService.logoutUser();
         }
 
         if(error.response && error.response.error){

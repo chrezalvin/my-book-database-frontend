@@ -2,7 +2,7 @@ import { Container } from "react-bootstrap";
 import Header from "../../components/Header";
 import { Outlet, useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../hooks/customRedux";
-import { logoutUser } from "../../API/services/Authentication";
+import { AuthenticationService } from "../../API/services/AuthenticationService";
 import { resetUser } from "../../store/User";
 
 function BooksLayout() {
@@ -11,7 +11,7 @@ function BooksLayout() {
     const dispatch = useAppDispatch();
 
     async function logout(){
-        await logoutUser();
+        await AuthenticationService.logoutUser();
         dispatch(resetUser());
 
         navigate("/books");
