@@ -1,8 +1,8 @@
 import {PayloadAction, createSlice} from "@reduxjs/toolkit";
 import { RootState } from ".";
-import { UserPublicData } from "../API/models/UserPublicData";
+import { User } from "../API/models/User";
 
-export interface UserState extends UserPublicData{
+export interface UserState extends User{
     
 }
 

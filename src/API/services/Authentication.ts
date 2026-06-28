@@ -1,6 +1,5 @@
 import { axiosInstance } from "../axiosConfig";
-import { User } from "../models/User";
-import { isUserPublicData, UserPublicData } from "../models/UserPublicData";
+import { User, userModel } from "../models/User";
 
 export async function authenticateUser(email: string, password: string): Promise<boolean> {
     // if header is already set, cancel authentication
@@ -56,13 +55,12 @@ export const isUserAuthenticated = (): boolean => {
     return jwt !== null;
 }
 
-export async function getUserData(): Promise<UserPublicData> {
+export async function getUserData(): Promise<User> {
     const res = await axiosInstance.get("/users/me");
 
     const data = res.data as unknown;
 
-    if(!isUserPublicData(data))
-        throw new Error(`Response data is not a valid UserPublicData: ${JSON.stringify(data)}`);
+    const parsed = userModel.parse(data);
 
-    return data;
+    return parsed;
 }

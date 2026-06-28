@@ -1,5 +1,6 @@
 import { Card, Button } from "react-bootstrap";
 import { Book } from "../API/models/Book";
+import GenreLabel from "./GenreLabel";
 
 interface BookCardProps {
   book: Book;
@@ -11,6 +12,10 @@ interface BookCardProps {
 }
 
 export default function BookCard(props: BookCardProps) {
+  const genreLabels = props.book.genres?.map((genre) => (
+    <GenreLabel key={genre.genre_id} genre={genre} />
+  ));
+
   return (
     <Card className="h-100 shadow-sm">
     {/* Cover */}
@@ -60,9 +65,9 @@ export default function BookCard(props: BookCardProps) {
           {props.book.publisher} • {props.book.publication_year}
         </Card.Text>
 
-        <Card.Text className="small">
-          {props.book.genre} · {props.book.language}
-        </Card.Text>
+        <div className="mb-2 d-flex flex-wrap gap-1">
+          {genreLabels}
+        </div>
 
         <div className="mt-auto d-flex gap-2">
           <Button

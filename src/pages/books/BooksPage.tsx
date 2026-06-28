@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { deleteBook, getBooksByPage } from "../../API/services/BookService";
+import { BookService } from "../../API/services/BookService";
 import { Book } from "../../API/models/Book";
 
 import {
@@ -52,7 +52,7 @@ function BooksPage() {
       try{
         setIsDeleting(true);
 
-        const isDeleted = await deleteBook(selectedBookToDelete.book_id);
+        const isDeleted = await BookService.deleteBook(selectedBookToDelete.book_id);
 
         if(isDeleted){
           fetchBooks();
@@ -75,7 +75,7 @@ function BooksPage() {
       try{
         setIsLoading(true);
 
-        const books = await getBooksByPage(currentPage, searchKeyword);
+        const books = await BookService.getBooksByPage(currentPage, searchKeyword);
 
         setBooks(books);
       }
@@ -201,7 +201,7 @@ function BooksPage() {
           <p><strong>Publisher:</strong> {selectedBook?.publisher}</p>
           <p><strong>Year:</strong> {selectedBook?.publication_year}</p>
           <p><strong>Language:</strong> {selectedBook?.language}</p>
-          <p><strong>Genre:</strong> {selectedBook?.genre}</p>
+          {/* <p><strong>Genre:</strong> {selectedBook?.genre}</p> */}
           <p className="mt-3">{selectedBook?.summary}</p>
         </Modal.Body>
       </Modal>

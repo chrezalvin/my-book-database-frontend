@@ -1,8 +1,13 @@
 import { Button, Card, Form } from "react-bootstrap";
-import { BookFormData } from "../../API/models/BookFormData";
-import { addNewBook } from "../../API/services/BookService";
+import { BookService } from "../../API/services/BookService";
 import { SubmitEvent, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { createBookSchema, updateBookSchema } from "../../API/schemas/BookSchema";
+import { Genre } from "../../API/models/Genre";
+import GenreLabel from "../../components/GenreLabel";
+import GenreSearch from "../../components/GenreSearch";
+import { GenreService } from "../../API/services/GenreService";
+import { ZodError } from "zod";
 
 function BooksCreatePage() {
     const navigate = useNavigate();
@@ -10,68 +15,98 @@ function BooksCreatePage() {
     const [title, setTitle] =  useState("");
     const [author, setAuthor] =  useState("");
     const [publisher, setPublisher] =  useState("");
-    const [publicationYear, setPublicationYear] =  useState<number>(2023);
+    const [publicationYear, setPublicationYear] =  useState<number | null>(null);
     const [summary, setSummary] =  useState("");
     const [coverFile, setCoverFile] =  useState<File | null>(null);
-    const [genre, setGenre] =  useState("fantasy");
+    const [genreList, setGenreList] =  useState<Genre[]>([]);
     const [language, setLanguage] =  useState("en");
     const [edition, setEdition] =  useState<string | null>(null);
     const [isbn, setIsbn] =  useState<string | null>(null);
 
+    const [isAddingGenre, setIsAddingGenre] = useState(false);
+
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [isFormValidated, setIsFormValidated] = useState(false);
 
-    async function onSubmit(event: SubmitEvent) {
-        event.preventDefault();
+    const [errorMap, setErrorMap] = useState<Record<string, string>>({});
 
-        try {
-            setIsSubmitting(true);
+    async function submitBook(){
+      try{
+        setIsFormValidated(true);
+        setIsSubmitting(true);
 
-            const newBookData: BookFormData = {
-                title,
-                author,
-                publisher,
-                publication_year: publicationYear,
-                summary,
-                genre,
-                language,
+        const parsed = createBookSchema.parse({
+          title,
+          author,
+          publisher,
+          publication_year: publicationYear,
+          summary,
+          genre_ids: genreList.map((g) => g.genre_id),
+          language,
+          edition,
+          isbn,
+        })
 
-                edition,
-                isbn,
-            };
+        const newBook = await BookService.addNewBook(parsed, coverFile ?? undefined);
 
-              for(const key in newBookData){
-                  const k = key as keyof BookFormData;
-                  const data = newBookData[k];
-                  if(typeof data === "string"){
-                    (newBookData[k] as string) = data.trim();
-                  }
-              }
+        navigate(`/books`);
+      }
+      catch(err){
+        setError("Failed to create book, please check your input and try again.");
 
-            const newBook = await addNewBook(newBookData, coverFile ?? undefined);
+        if(err instanceof ZodError){
+          const zodError = err;
 
-            navigate(`/books`);
+          const fieldErrors: Record<string, string> = {};
+          for (const issue of zodError.issues) {
+            if (issue.path.length > 0) {
+              const fieldName = issue.path[0].toString();
+              fieldErrors[fieldName] = issue.message;
+            }
+          }
+
+          setErrorMap(fieldErrors);
         }
-        catch(err){
-            setError("Failed to create book");
-        }
-        finally{
-            setIsSubmitting(false);
-        }
-    } 
+
+        console.error(err);
+      }
+      finally{
+        setIsSubmitting(false);
+      }
+    }
+
+    const genreListUI = genreList.map((g) => (
+      <GenreLabel 
+        key={g.genre_id} 
+        genre={g} 
+        onDelete={(genre) => {
+          setGenreList(genreList.filter((g) => g.genre_id !== genre.genre_id));
+        }}
+      />
+    ))
 
     return (
     <Card className="shadow-sm">
       <Card.Body>
-        <Form onSubmit={onSubmit}>
-          <Form.Group className="mb-3">
+        <Form 
+          noValidate  
+          onSubmit={(e) => {
+            e.preventDefault();
+            submitBook();
+          }}
+        >
+          <Form.Group className="mb-3" controlId="formTitle">
             <Form.Label>Title</Form.Label>
             <Form.Control
               name="title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              required
+              isInvalid={isFormValidated && !!errorMap["title"]}
             />
+            <Form.Control.Feedback className="text-danger" type="invalid">
+              {errorMap["title"]}
+            </Form.Control.Feedback>
           </Form.Group>
 
           <Form.Group className="mb-3">
@@ -80,8 +115,11 @@ function BooksCreatePage() {
               name="author"
               value={author}
               onChange={(e) => setAuthor(e.target.value)}
-              required
+              isInvalid={isFormValidated && !!errorMap["author"]}
             />
+            <Form.Control.Feedback className="text-danger" type="invalid">
+              {errorMap["author"]}
+            </Form.Control.Feedback>
           </Form.Group>
 
           <Form.Group className="mb-3">
@@ -90,7 +128,11 @@ function BooksCreatePage() {
               name="publisher"
               value={publisher}
               onChange={(e) => setPublisher(e.target.value)}
+              isInvalid={isFormValidated && !!errorMap["publisher"]}
             />
+            <Form.Control.Feedback className="text-danger" type="invalid">
+              {errorMap["publisher"]}
+            </Form.Control.Feedback>
           </Form.Group>
 
           <Form.Group className="mb-3">
@@ -99,18 +141,35 @@ function BooksCreatePage() {
               type="number"
               name="publication_year"
               value={publicationYear ?? ""}
-              onChange={(e) => setPublicationYear(e.target.value ? parseInt(e.target.value) : 2023)}
-              required
+              onChange={(e) => setPublicationYear(e.target.value.length > 0 ? parseInt(e.target.value) : null)}
+              isInvalid={isFormValidated && !!errorMap["publication_year"]}
             />
+            <Form.Control.Feedback className="text-danger" type="invalid">
+              {errorMap["publication_year"]}
+            </Form.Control.Feedback>
           </Form.Group>
 
           <Form.Group className="mb-3">
             <Form.Label>Genre</Form.Label>
-            <Form.Control
-              type="text"
-              name="genre"
-              value={genre}
-              onChange={(e) => setGenre(e.target.value)}
+
+            <div className="mb-2 d-flex flex-wrap gap-1">
+              {genreListUI}
+              <Button
+                size="sm"
+                variant="outline-primary"
+                onClick={() => setIsAddingGenre(!isAddingGenre)}
+              >
+                +
+              </Button>
+            </div>
+
+            <GenreSearch 
+              show={isAddingGenre}
+              currentGenres={genreList}
+              onGenreSelect={(g) => {
+                setGenreList([...genreList, g]);
+                setIsAddingGenre(false);
+              }}
             />
           </Form.Group>
 
@@ -129,8 +188,8 @@ function BooksCreatePage() {
             <Form.Control
               type="text"
               name="edition"
-              value={edition ?? ""}
-              onChange={(e) => setEdition(e.target.value ? e.target.value : null)}
+              value={edition ?? undefined}
+              onChange={(e) => setEdition(e.target.value.length == 0 ? null: e.target.value)}
             />
           </Form.Group>
 
@@ -139,8 +198,8 @@ function BooksCreatePage() {
             <Form.Control
               type="text"
               name="isbn"
-              value={isbn ?? ""}
-              onChange={(e) => setIsbn(e.target.value ? e.target.value : null)}
+              value={isbn ?? undefined}
+              onChange={(e) => setIsbn(e.target.value.length == 0 ? null: e.target.value)}
             />
           </Form.Group>
 
@@ -170,22 +229,19 @@ function BooksCreatePage() {
                 }
                 }}
             />
-
-            <Form.Text className="text-muted">
-              Leave empty to keep existing cover
-            </Form.Text>
           </Form.Group>
+
+          {error && (
+              <p className="text-danger mt-3">{error}</p>
+          )}
 
           <Button
             type="submit"
             disabled={isSubmitting}
+            onClick={submitBook}
           >
             Create Book
           </Button>
-
-            {error && (
-                <p className="text-danger mt-3">{error}</p>
-            )}
         </Form>
       </Card.Body>
     </Card>
