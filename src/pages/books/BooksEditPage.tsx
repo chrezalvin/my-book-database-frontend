@@ -15,8 +15,8 @@ function BooksEditPage() {
 
   // initial book state
   const [title, setTitle] =  useState<Book["title"]>("");
-  const [author, setAuthor] =  useState<Book["author"]>("");
-  const [publisher, setPublisher] =  useState<Book["publisher"]>("");
+  const [author, setAuthor] =  useState<Book["author_name"]>("");
+  const [publisher, setPublisher] =  useState<Book["publisher_name"]>("");
   const [publicationYear, setPublicationYear] =  useState<Book["publication_year"]>(2023);
   const [summary, setSummary] =  useState<Book["summary"]>("");
   const [language, setLanguage] =  useState<Book["language"]>("en");
@@ -27,8 +27,8 @@ function BooksEditPage() {
 
   // update book state
   const [newTitle, setNewTitle] =  useState<Book["title"] | undefined>(undefined);
-  const [newAuthor, setNewAuthor] =  useState<Book["author"] | undefined>(undefined);
-  const [newPublisher, setNewPublisher] =  useState<Book["publisher"] | undefined>(undefined);
+  const [newAuthor, setNewAuthor] =  useState<Book["author_name"] | undefined>(undefined);
+  const [newPublisher, setNewPublisher] =  useState<Book["publisher_name"] | undefined>(undefined);
   const [newPublicationYear, setNewPublicationYear] =  useState<Book["publication_year"] | undefined>(undefined);
   const [newSummary, setNewSummary] =  useState<Book["summary"] | undefined>(undefined);
   const [newLanguage, setNewLanguage] =  useState<Book["language"] | undefined>(undefined);
@@ -49,8 +49,8 @@ function BooksEditPage() {
           const book = await BookService.getOneBook(book_id);
 
           setTitle(book.title);
-          setAuthor(book.author);
-          setPublisher(book.publisher);
+          setAuthor(book.author_name);
+          setPublisher(book.publisher_name);
           setPublicationYear(book.publication_year);
           setSummary(book.summary);
           setLanguage(book.language);
@@ -81,8 +81,8 @@ function BooksEditPage() {
       const updateBook: UpdateBook = {};
 
       if(newTitle !== undefined) updateBook.title = newTitle;
-      if(newAuthor !== undefined) updateBook.author = newAuthor;
-      if(newPublisher !== undefined) updateBook.publisher = newPublisher;
+      if(newAuthor !== undefined) updateBook.author_id = newAuthor;
+      if(newPublisher !== undefined) updateBook.publisher_id = newPublisher;
       if(newPublicationYear !== undefined) updateBook.publication_year = newPublicationYear;
       if(newSummary !== undefined) updateBook.summary = newSummary;
       if(newLanguage !== undefined) updateBook.language = newLanguage;

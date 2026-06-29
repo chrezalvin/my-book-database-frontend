@@ -11,7 +11,7 @@ interface BookCardProps {
   allowedToDelete?: boolean;
 }
 
-export default function BookCard(props: BookCardProps) {
+export default function BookCardSimple(props: BookCardProps) {
   const genreLabels = props.book.genres?.map((genre) => (
     <GenreLabel key={genre.genre_id} genre={genre} />
   ));

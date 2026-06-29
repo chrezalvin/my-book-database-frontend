@@ -210,8 +210,8 @@ function BooksPage() {
             )
           }
 
-          <p><strong>Author:</strong> {selectedBook?.author}</p>
-          <p><strong>Publisher:</strong> {selectedBook?.publisher}</p>
+          <p><strong>Author:</strong> {selectedBook?.author_name}</p>
+          <p><strong>Publisher:</strong> {selectedBook?.publisher_name}</p>
           <p><strong>Year:</strong> {selectedBook?.publication_year}</p>
           <p><strong>Language:</strong> {selectedBook?.language}</p>
           <p><strong>Genre:</strong> {selectedBook?.genres?.map(g => g.genre_name).join(", ")}</p>
