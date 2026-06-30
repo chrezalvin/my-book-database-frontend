@@ -6,15 +6,20 @@ import { createBookSchema, updateBookSchema } from "../../API/schemas/BookSchema
 import { Genre } from "../../API/models/Genre";
 import GenreLabel from "../../components/GenreLabel";
 import GenreSearch from "../../components/GenreSearch";
+import SearchHelper from "../../components/SearchHelper";
 import { GenreService } from "../../API/services/GenreService";
 import { ZodError } from "zod";
+import { Author } from "../../API/models/Author";
+import { Publisher } from "../../API/models/Publisher";
 
 function BooksCreatePage() {
     const navigate = useNavigate();
 
     const [title, setTitle] =  useState("");
-    const [author, setAuthor] =  useState("");
-    const [publisher, setPublisher] =  useState("");
+    const [author, setAuthor] =  useState<Author | null>(null);
+    const [authorKeyword, setAuthorKeyword] = useState<string>("");
+    
+    const [publisher, setPublisher] =  useState<Publisher | null>(null);
     const [publicationYear, setPublicationYear] =  useState<number | null>(null);
     const [summary, setSummary] =  useState("");
     const [coverFile, setCoverFile] =  useState<File | null>(null);
@@ -76,6 +81,18 @@ function BooksCreatePage() {
       }
     }
 
+    async function searchGenres(keyword: string): Promise<Genre[]> {
+      try{
+        const exclude_genre_ids = genreList.map(g => g.genre_id);
+        const genres = GenreService.getGenres({keyword, exclude_genre_ids});
+        return genres;
+      }
+      catch(err){
+        console.error("Error searching genres:", err);
+        return [];
+      }
+    }
+
     const genreListUI = genreList.map((g) => (
       <GenreLabel 
         key={g.genre_id} 
@@ -109,7 +126,7 @@ function BooksCreatePage() {
             </Form.Control.Feedback>
           </Form.Group>
 
-          <Form.Group className="mb-3">
+          {/* <Form.Group className="mb-3">
             <Form.Label>Author</Form.Label>
             <Form.Control
               name="author"
@@ -120,10 +137,11 @@ function BooksCreatePage() {
             <Form.Control.Feedback className="text-danger" type="invalid">
               {errorMap["author"]}
             </Form.Control.Feedback>
-          </Form.Group>
+          </Form.Group> */}
 
-          <Form.Group className="mb-3">
+          {/* <Form.Group className="mb-3">
             <Form.Label>Publisher</Form.Label>
+
             <Form.Control
               name="publisher"
               value={publisher}
@@ -133,7 +151,7 @@ function BooksCreatePage() {
             <Form.Control.Feedback className="text-danger" type="invalid">
               {errorMap["publisher"]}
             </Form.Control.Feedback>
-          </Form.Group>
+          </Form.Group> */}
 
           <Form.Group className="mb-3">
             <Form.Label>Publication Year</Form.Label>
@@ -163,12 +181,32 @@ function BooksCreatePage() {
               </Button>
             </div>
 
-            <GenreSearch 
+            <SearchHelper 
               show={isAddingGenre}
-              currentGenres={genreList}
-              onGenreSelect={(g) => {
+              placeholder="Search genres..."
+              searchByKeyword={searchGenres}
+              convertToListItem={(g) => {
+                return {
+                  item: g,
+                  value: g.genre_name,
+                  key: g.genre_id,
+                }
+              }}
+              
+              onHelperSelect={(g) => {
                 setGenreList([...genreList, g]);
                 setIsAddingGenre(false);
+              }}
+
+              buttonSetting={{
+                canAddFromKeyword: (keyword) => {
+                  // check if keyword is not empty and not already in genreList
+                  return keyword.length > 0 && !genreList.some(g => g.genre_name.toLowerCase() === keyword.toLowerCase());
+                },
+                buttonText: "Add Genre",
+                onButtonClick: async (keyword) => {
+                  return await GenreService.addNewGenre({genre_name: keyword});
+                },
               }}
             />
           </Form.Group>

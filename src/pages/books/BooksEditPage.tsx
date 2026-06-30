@@ -181,7 +181,7 @@ function BooksEditPage() {
             />
           </Form.Group>
 
-          <Form.Group className="mb-3">
+          {/* <Form.Group className="mb-3">
             <Form.Label>Author</Form.Label>
             <Form.Control
               name="author"
@@ -189,16 +189,16 @@ function BooksEditPage() {
               onChange={(e) => setNewAuthor(e.target.value)}
               required
             />
-          </Form.Group>
+          </Form.Group> */}
 
-          <Form.Group className="mb-3">
+          {/* <Form.Group className="mb-3">
             <Form.Label>Publisher</Form.Label>
             <Form.Control
               name="publisher"
               value={newPublisher ?? publisher}
               onChange={(e) => setNewPublisher(e.target.value)}
             />
-          </Form.Group>
+          </Form.Group> */}
 
           <Form.Group className="mb-3">
             <Form.Label>Publication Year</Form.Label>

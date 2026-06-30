@@ -30,7 +30,7 @@ export class GenreService {
     }
 
     static async addNewGenre(genre: CreateGenre): Promise<Genre> {
-        const res = await axiosInstance.post(`/genres/add`, genre);
+        const res = await axiosInstance.post(`/genres`, genre);
 
         const parsed = genreModel.parse(res.data);
 
@@ -38,7 +38,7 @@ export class GenreService {
     }
 
     static async editGenre(genre_id: Genre["genre_id"], genreUpdate: UpdateGenre): Promise<Genre> {
-        const res = await axiosInstance.put(`/genres/edit/${genre_id}`, genreUpdate);
+        const res = await axiosInstance.patch(`/genres/${genre_id}`, genreUpdate);
 
         const parsed = genreModel.parse(res.data);
 
@@ -46,7 +46,7 @@ export class GenreService {
     }
 
     static async deleteGenre(genre_id: Genre["genre_id"]): Promise<boolean> {
-        const res = await axiosInstance.delete(`/genres/delete/${genre_id}`);
+        const res = await axiosInstance.delete(`/genres/${genre_id}`);
 
         if(!("success" in res.data))
             throw new Error(`Response data does not contain 'success' field: ${JSON.stringify(res.data)}`);
