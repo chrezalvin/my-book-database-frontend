@@ -1,4 +1,4 @@
-import { Button, Card, Form } from "react-bootstrap";
+import { Button, Card, Form, InputGroup, ListGroup, Modal } from "react-bootstrap";
 import { Book } from "../../API/models/Book";
 import { BookService } from "../../API/services/BookService";
 import { SubmitEvent, useEffect, useState } from "react";
@@ -8,6 +8,10 @@ import { Genre } from "../../API/models/Genre";
 import GenreLabel from "../../components/GenreLabel";
 import GenreSearch from "../../components/GenreSearch";
 import { GenreService } from "../../API/services/GenreService";
+import { Author, authorCreate, AuthorCreate } from "../../API/models/Author";
+import { Publisher, publisherCreate, PublisherCreate } from "../../API/models/Publisher";
+import { AuthorService } from "../../API/services/AuthorService";
+import { PublisherService } from "../../API/services/PublisherService";
 
 function BooksEditPage() {
   const {book_id} = useParams<{book_id: string}>();
@@ -27,8 +31,29 @@ function BooksEditPage() {
 
   // update book state
   const [newTitle, setNewTitle] =  useState<Book["title"] | undefined>(undefined);
-  const [newAuthor, setNewAuthor] =  useState<Book["author_name"] | undefined>(undefined);
-  const [newPublisher, setNewPublisher] =  useState<Book["publisher_name"] | undefined>(undefined);
+  
+  // author
+  const [newAuthor, setNewAuthor] =  useState<Author | null | undefined>(undefined);
+  const [authorKeyword, setAuthorKeyword] = useState<string>("");
+  const [authorSearchResults, setAuthorSearchResults] = useState<Author[]>([]);
+  const [isSearchingAuthor, setIsSearchingAuthor] = useState(false);
+  
+  const [showAddAuthorModal, setShowAddAuthorModal] = useState(false);
+  const [isAddingAuthor, setIsAddingAuthor] = useState(false);
+  const [newAuthorName, setNewAuthorName] = useState<string>("");
+  const [newAuthorDescription, setNewAuthorDescription] = useState<string>("");
+
+  // publisher
+  const [newPublisher, setNewPublisher] =  useState<Publisher | null | undefined>(undefined);
+  const [publisherKeyword, setPublisherKeyword] = useState<string>("");
+  const [publisherSearchResults, setPublisherSearchResults] = useState<Publisher[]>([]);
+  const [isSearchingPublisher, setIsSearchingPublisher] = useState(false);
+  
+  const [showAddPublisherModal, setShowAddPublisherModal] = useState(false);
+  const [isAddingPublisher, setIsAddingPublisher] = useState(false);
+  const [newPublisherName, setNewPublisherName] = useState<string>("");
+  const [newPublisherDescription, setNewPublisherDescription] = useState<string>("");
+  
   const [newPublicationYear, setNewPublicationYear] =  useState<Book["publication_year"] | undefined>(undefined);
   const [newSummary, setNewSummary] =  useState<Book["summary"] | undefined>(undefined);
   const [newLanguage, setNewLanguage] =  useState<Book["language"] | undefined>(undefined);
@@ -81,8 +106,8 @@ function BooksEditPage() {
       const updateBook: UpdateBook = {};
 
       if(newTitle !== undefined) updateBook.title = newTitle;
-      if(newAuthor !== undefined) updateBook.author_id = newAuthor;
-      if(newPublisher !== undefined) updateBook.publisher_id = newPublisher;
+      if(newAuthor !== undefined) updateBook.author_id = newAuthor?.author_id;
+      if(newPublisher !== undefined) updateBook.publisher_id = newPublisher?.publisher_id;
       if(newPublicationYear !== undefined) updateBook.publication_year = newPublicationYear;
       if(newSummary !== undefined) updateBook.summary = newSummary;
       if(newLanguage !== undefined) updateBook.language = newLanguage;
@@ -105,19 +130,6 @@ function BooksEditPage() {
       finally{
           setIsSubmitting(false);
       }
-  }
-
-  useEffect(() => {
-      if(!book_id){
-          navigate("/books");
-          return;
-      }
-
-      loadBooks(book_id);
-  }, [])
-
-  if(!isBookLoaded){
-      return <p>Loading book data...</p>;
   }
 
   function addGenre(addedGenre: Genre){
@@ -160,6 +172,187 @@ function BooksEditPage() {
     setNewGenre(updatedGenre);
   }
 
+  // -- author functions
+  async function handleAddAuthor(){
+    try{
+      setIsAddingAuthor(true);
+
+      const newAuthorData: AuthorCreate = {
+        author_name: newAuthorName,
+        author_description: newAuthorDescription,
+      }
+
+      const parsed = authorCreate.parse(newAuthorData);
+
+      const newAuthor = await AuthorService.addNewAuthor(parsed);
+
+      setNewAuthor(newAuthor);
+    }
+    catch(err){
+      setError("Failed to add new author");
+    }
+    finally{
+      setIsAddingAuthor(false);
+      setShowAddAuthorModal(false);
+    }
+  }
+
+  async function searchAuthors(keyword: string){
+    try{
+      setIsSearchingAuthor(true);
+
+      const results = await AuthorService.searchAuthors(keyword);
+
+      setAuthorSearchResults(results);
+    }
+    catch(err){
+      setError("Failed to search authors");
+    }
+    finally{
+      setIsSearchingAuthor(false);
+    }
+  }
+
+  function handleAuthorInputChange(e: React.ChangeEvent<HTMLInputElement>){
+    setNewAuthor(undefined); // reset newAuthor when user types in the input
+
+    if(author != null)
+      setAuthor(null);
+
+    const value = e.target.value;
+    setAuthorKeyword(value);
+  }
+
+  function handleAuthorModalOpen(){
+    setNewAuthorName(authorKeyword);
+    setShowAddAuthorModal(true);
+  }
+
+  function handleAuthorModalClose(){
+    if(!isAddingAuthor){
+      setShowAddAuthorModal(false);
+    }
+  }
+
+  function handleAuthorSelected(author: Author){
+    setNewAuthor(author);
+    setAuthorSearchResults([]);
+  }
+
+  const authorSearchResultsUI = authorSearchResults.map((a) => (
+    <ListGroup.Item
+      key={a.author_id}
+      action
+      onClick={() => handleAuthorSelected(a)}
+    >
+      {a.author_name}
+    </ListGroup.Item>
+  ))
+
+  // basic debouncing for author search
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+      if(authorKeyword.length > 0){
+        searchAuthors(authorKeyword);
+      }
+    }, 500);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [authorKeyword]);
+
+  // -- end author functions
+
+  // -- publisher functions
+
+    async function handleAddPublisher(){
+    try{
+      setIsAddingPublisher(true);
+
+      const newPublisherData: PublisherCreate = {
+        publisher_name: newPublisherName,
+        publisher_description: newPublisherDescription,
+      }
+
+      const parsed = publisherCreate.parse(newPublisherData);
+
+      const newPublisher = await PublisherService.addNewPublisher(parsed);
+
+      setNewPublisher(newPublisher);
+    }
+    catch(err){
+      setError("Failed to add new publisher");
+    }
+    finally{
+      setIsAddingPublisher(false);
+      setShowAddPublisherModal(false);
+    }
+  }
+
+  async function searchPublishers(keyword: string){
+    try{
+      setIsSearchingPublisher(true);
+
+      const results = await PublisherService.getPublishers(keyword);
+
+      setPublisherSearchResults(results);
+    }
+    catch(err){
+      setError("Failed to search publishers");
+    }
+    finally{
+      setIsSearchingPublisher(false);
+    }
+  }
+
+  function handlePublisherInputChange(e: React.ChangeEvent<HTMLInputElement>){
+    setNewPublisher(undefined); // reset newPublisher when user types in the input
+
+    if(publisher != null)
+      setPublisher(null);
+
+    const value = e.target.value;
+    setPublisherKeyword(value);
+  }
+
+  function handlePublisherModalOpen(){
+    setNewPublisherName(publisherKeyword);
+    setShowAddPublisherModal(true);
+  }
+
+  function handlePublisherModalClose(){
+    if(!isAddingPublisher){
+      setShowAddPublisherModal(false);
+    }
+  }
+
+  function handlePublisherSelected(publisher: Publisher){
+    setNewPublisher(publisher);
+    setPublisherSearchResults([]);
+  }
+
+  const publisherSearchResultsUI = publisherSearchResults.map((a) => (
+    <ListGroup.Item
+      key={a.publisher_id}
+      action
+      onClick={() => handlePublisherSelected(a)}
+    >
+      {a.publisher_name}
+    </ListGroup.Item>
+  ))
+
+  // basic debouncing for publisher search
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+      if(publisherKeyword.length > 0){
+        searchPublishers(publisherKeyword);
+      }
+    }, 500);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [publisherKeyword]);
+
+  // -- end publisher functions
+
   const genreListUI = (newGenre ?? genre)?.map((g) => (
     <GenreLabel 
       genre={g}
@@ -167,8 +360,111 @@ function BooksEditPage() {
     />
   ));
 
+  useEffect(() => {
+      if(!book_id){
+          navigate("/books");
+          return;
+      }
+
+      loadBooks(book_id);
+  }, [])
+
+  if(!isBookLoaded){
+      return <p>Loading book data...</p>;
+  }
+
   return (
     <Card className="shadow-sm">
+      {/* Author Modal */}
+      <Modal 
+        show={showAddAuthorModal} 
+        onHide={handleAuthorModalClose}
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>Add A New Author</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form.Group className="mb-3" controlId="formNewAuthorName">
+            <Form.Label>Author Name</Form.Label>
+            <Form.Control
+              name="newAuthorName"
+              value={newAuthorName}
+              onChange={(e) => setNewAuthorName(e.target.value)}
+            />
+          </Form.Group>
+          <Form.Group className="mb-3" controlId="formNewAuthorDescription">
+            <Form.Label>Author Description</Form.Label>
+            <Form.Control
+              as="textarea"
+              rows={4}
+              name="newAuthorDescription"
+              value={newAuthorDescription}
+              onChange={(e) => setNewAuthorDescription(e.target.value)}
+            />
+          </Form.Group>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button 
+            variant="secondary" 
+            onClick={handleAuthorModalClose}
+            disabled={isAddingAuthor}
+          >
+            Close
+          </Button>
+          <Button 
+            variant="primary" 
+            onClick={handleAddAuthor}
+          >
+            Save Changes
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* Publisher Modal */}
+      <Modal 
+        show={showAddPublisherModal} 
+        onHide={handlePublisherModalClose}
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>Add A New Publisher</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form.Group className="mb-3" controlId="formNewPublisherName">
+            <Form.Label>Publisher Name</Form.Label>
+            <Form.Control
+              name="newPublisherName"
+              value={newPublisherName}
+              onChange={(e) => setNewPublisherName(e.target.value)}
+            />
+          </Form.Group>
+          <Form.Group className="mb-3" controlId="formNewPublisherDescription">
+            <Form.Label>Publisher Description</Form.Label>
+            <Form.Control
+              as="textarea"
+              rows={4}
+              name="newPublisherDescription"
+              value={newPublisherDescription}
+              onChange={(e) => setNewPublisherDescription(e.target.value)}
+            />
+          </Form.Group>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button 
+            variant="secondary" 
+            onClick={handlePublisherModalClose}
+            disabled={isAddingPublisher}
+          >
+            Close
+          </Button>
+          <Button 
+            variant="primary" 
+            onClick={handleAddPublisher}
+          >
+            Save Changes
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
       <Card.Body>
         <Form onSubmit={onSubmit}>
           <Form.Group className="mb-3">
@@ -181,24 +477,55 @@ function BooksEditPage() {
             />
           </Form.Group>
 
-          {/* <Form.Group className="mb-3">
+          <Form.Group className="mb-3">
             <Form.Label>Author</Form.Label>
-            <Form.Control
-              name="author"
-              value={newAuthor ?? author}
-              onChange={(e) => setNewAuthor(e.target.value)}
-              required
-            />
-          </Form.Group> */}
+            <InputGroup>
+              <Form.Control
+                name="author"
+                value={newAuthor?.author_name ?? author ?? authorKeyword}
+                onChange={handleAuthorInputChange}
+              />
+              {
+                !newAuthor && authorKeyword != "" && (
+                  <Button 
+                    variant="primary" 
+                    id="add-author-button"
+                    onClick={handleAuthorModalOpen}
+                  >
+                    Add New Author
+                  </Button>
+                )
+              }
+            </InputGroup>
+            <ListGroup>
+              {authorSearchResultsUI}
+            </ListGroup>
+          </Form.Group>
 
-          {/* <Form.Group className="mb-3">
+          <Form.Group className="mb-3">
             <Form.Label>Publisher</Form.Label>
-            <Form.Control
-              name="publisher"
-              value={newPublisher ?? publisher}
-              onChange={(e) => setNewPublisher(e.target.value)}
-            />
-          </Form.Group> */}
+            <InputGroup>
+              <Form.Control
+                name="publisher"
+                value={newPublisher?.publisher_name ?? publisher ?? publisherKeyword}
+                onChange={handlePublisherInputChange}
+              />
+              {
+                !newPublisher && publisherKeyword != "" && (
+                  <Button 
+                    variant="primary" 
+                    id="add-publisher-button"
+                    onClick={handlePublisherModalOpen}
+                  >
+                    Add New Publisher
+                  </Button>
+                )
+              }
+            </InputGroup>
+            <ListGroup>
+              {publisherSearchResultsUI}
+            </ListGroup>
+          </Form.Group>
 
           <Form.Group className="mb-3">
             <Form.Label>Publication Year</Form.Label>
