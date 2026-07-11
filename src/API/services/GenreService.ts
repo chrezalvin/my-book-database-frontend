@@ -1,6 +1,6 @@
 import { axiosInstance } from "../axiosConfig";
 import { Genre, genreModel } from "../models/Genre";
-import { CreateGenre, UpdateGenre } from "../schemas/GenreSchema";
+import { GenreCreate, GenreUpdate } from "../schemas/GenreSchema";
 
 export class GenreService {
     static async getGenres(options: {keyword?: string, exclude_genre_ids?: string[]}): Promise<Genre[]> {
@@ -29,16 +29,40 @@ export class GenreService {
         return genres;
     }
 
-    static async addNewGenre(genre: CreateGenre): Promise<Genre> {
-        const res = await axiosInstance.post(`/genres`, genre);
+    static async addNewGenre(genre: GenreCreate, genre_img?: File): Promise<Genre> {
+        const formData = new FormData();
+        formData.append("genre", JSON.stringify(genre));
+
+        if(genre_img)
+            formData.append("image", genre_img);
+
+        const res = await axiosInstance.post(`/genres`, formData, {
+            headers: {
+                "Content-Type": "multipart/form-data",
+            },
+        });
 
         const parsed = genreModel.parse(res.data);
 
         return parsed;
     }
 
-    static async editGenre(genre_id: Genre["genre_id"], genreUpdate: UpdateGenre): Promise<Genre> {
-        const res = await axiosInstance.patch(`/genres/${genre_id}`, genreUpdate);
+    static async editGenre(
+        genre_id: Genre["genre_id"], 
+        genreUpdate: GenreUpdate,
+        genre_img?: File
+    ): Promise<Genre> {
+        const formData = new FormData();
+        formData.append("genre", JSON.stringify(genreUpdate));
+
+        if(genre_img)
+            formData.append("image", genre_img);
+
+        const res = await axiosInstance.patch(`/genres/${genre_id}`, formData, {
+            headers: {
+                "Content-Type": "multipart/form-data",
+            },
+        });
 
         const parsed = genreModel.parse(res.data);
 

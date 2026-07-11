@@ -13,7 +13,11 @@ interface BookCardProps {
 
 export default function BookCardSimple(props: BookCardProps) {
   const genreLabels = props.book.genres?.map((genre) => (
-    <GenreLabel key={genre.genre_id} genre={genre} />
+    <GenreLabel 
+      key={genre.genre_id} 
+      genre_id={genre.genre_id}
+      genre_name={genre.genre_name}
+    />
   ));
 
   return (

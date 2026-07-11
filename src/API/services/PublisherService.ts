@@ -1,5 +1,6 @@
 import { axiosInstance } from "../axiosConfig";
-import { Publisher, PublisherCreate, publisherModel, PublisherUpdate } from "../models/Publisher";
+import { Publisher, publisherModel } from "../models/Publisher";
+import { PublisherCreate, PublisherUpdate } from "../schemas/PublisherSchema";
 
 export class PublisherService {
     static async getPublishers(name?: string): Promise<Publisher[]> {
@@ -32,16 +33,40 @@ export class PublisherService {
         return parsed;
     }
 
-    static async addNewPublisher(publisher: PublisherCreate): Promise<Publisher> {
-        const res = await axiosInstance.post(`/publishers`, publisher);
+    static async addNewPublisher(publisher: PublisherCreate, publisher_img?: File): Promise<Publisher> {
+        const formData = new FormData();
+        formData.append("publisher", JSON.stringify(publisher));
+
+        if(publisher_img)
+            formData.append("image", publisher_img);
+
+        const res = await axiosInstance.post(`/publishers`, formData, {
+            headers: {
+                "Content-Type": "multipart/form-data",
+            },
+        });
 
         const parsed = publisherModel.parse(res.data);
 
         return parsed;
     }
 
-    static async editPublisher(publisher_id: Publisher["publisher_id"], publisherUpdate: PublisherUpdate): Promise<Publisher> {
-        const res = await axiosInstance.patch(`/publishers/${publisher_id}`, publisherUpdate);
+    static async editPublisher(
+        publisher_id: Publisher["publisher_id"], 
+        publisherUpdate: PublisherUpdate,
+        publisher_img?: File
+    ): Promise<Publisher> {
+        const formData = new FormData();
+        formData.append("publisher", JSON.stringify(publisherUpdate));
+
+        if(publisher_img)
+            formData.append("image", publisher_img);
+
+        const res = await axiosInstance.patch(`/publishers/${publisher_id}`, formData, {
+            headers: {
+                "Content-Type": "multipart/form-data",
+            },
+        });
 
         const parsed = publisherModel.parse(res.data);
 

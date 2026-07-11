@@ -8,10 +8,12 @@ import { Genre } from "../../API/models/Genre";
 import GenreLabel from "../../components/GenreLabel";
 import GenreSearch from "../../components/GenreSearch";
 import { GenreService } from "../../API/services/GenreService";
-import { Author, authorCreate, AuthorCreate } from "../../API/models/Author";
-import { Publisher, publisherCreate, PublisherCreate } from "../../API/models/Publisher";
+import { Author } from "../../API/models/Author";
+import { Publisher } from "../../API/models/Publisher";
 import { AuthorService } from "../../API/services/AuthorService";
 import { PublisherService } from "../../API/services/PublisherService";
+import AuthorAddModal, { AuthorCreateAdd } from "../../components/Author/AuthorAddModal";
+import PublisherAddModal, { PublisherCreateAdd } from "../../components/Publisher/PublisherAddModal";
 
 function BooksEditPage() {
   const {book_id} = useParams<{book_id: string}>();
@@ -24,7 +26,7 @@ function BooksEditPage() {
   const [publicationYear, setPublicationYear] =  useState<Book["publication_year"]>(2023);
   const [summary, setSummary] =  useState<Book["summary"]>("");
   const [language, setLanguage] =  useState<Book["language"]>("en");
-  const [genre, setGenre] =  useState<Genre[] | null>(null);
+  const [genre, setGenre] =  useState<Book["genres"] | null>(null);
   const [isbn, setIsbn] =  useState<Book["isbn"]>(null);
   const [edition, setEdition] =  useState<Book["edition"]>(null);
   const [existingCoverUrl, setExistingCoverUrl] = useState<string | null>(null);
@@ -40,8 +42,6 @@ function BooksEditPage() {
   
   const [showAddAuthorModal, setShowAddAuthorModal] = useState(false);
   const [isAddingAuthor, setIsAddingAuthor] = useState(false);
-  const [newAuthorName, setNewAuthorName] = useState<string>("");
-  const [newAuthorDescription, setNewAuthorDescription] = useState<string>("");
 
   // publisher
   const [newPublisher, setNewPublisher] =  useState<Publisher | null | undefined>(undefined);
@@ -51,13 +51,11 @@ function BooksEditPage() {
   
   const [showAddPublisherModal, setShowAddPublisherModal] = useState(false);
   const [isAddingPublisher, setIsAddingPublisher] = useState(false);
-  const [newPublisherName, setNewPublisherName] = useState<string>("");
-  const [newPublisherDescription, setNewPublisherDescription] = useState<string>("");
   
   const [newPublicationYear, setNewPublicationYear] =  useState<Book["publication_year"] | undefined>(undefined);
   const [newSummary, setNewSummary] =  useState<Book["summary"] | undefined>(undefined);
   const [newLanguage, setNewLanguage] =  useState<Book["language"] | undefined>(undefined);
-  const [newGenre, setNewGenre] =  useState<Genre[] | null | undefined>(undefined);
+  const [newGenre, setNewGenre] =  useState<(Genre | Book["genres"][number])[] | undefined>(undefined);
   const [newIsbn, setNewIsbn] =  useState<Book["isbn"] | undefined>(undefined);
   const [newEdition, setNewEdition] =  useState<Book["edition"] | undefined>(undefined);
   const [newCoverFile, setNewCoverFile] =  useState<File | undefined>(undefined);
@@ -133,7 +131,7 @@ function BooksEditPage() {
   }
 
   function addGenre(addedGenre: Genre){
-    let updatedGenre: Genre[] | null = null
+    let updatedGenre: (Genre | Book["genres"][number])[] | null = null
 
     // add existing genres to updatedGenre if newGenre is undefined
     if(newGenre === undefined)
@@ -151,8 +149,8 @@ function BooksEditPage() {
     setNewGenre(updatedGenre);
   }
 
-  function removeGenre(removedGenre: Genre){
-    let updatedGenre: Genre[] | null = null;
+  function removeGenre(genre_id: Genre["genre_id"]){
+    let updatedGenre: (Genre | Book["genres"][number])[] | null = null;
 
     // add existing genres to updatedGenre if newGenre is undefined
     if(newGenre === undefined)
@@ -162,29 +160,25 @@ function BooksEditPage() {
 
     // if updatedGenre is null, set the updatedGenre to null and return
     if(updatedGenre === null){
-      setNewGenre(null);
+      setNewGenre([]);
       return;
     }
 
     // filter out the removed genre from the updatedGenre list
-    updatedGenre = updatedGenre.filter((g) => g.genre_id !== removedGenre.genre_id);
+    updatedGenre = updatedGenre.filter((g) => g.genre_id !== genre_id);
 
     setNewGenre(updatedGenre);
   }
 
   // -- author functions
-  async function handleAddAuthor(){
+  async function handleAddAuthor(authorData: AuthorCreateAdd){
     try{
       setIsAddingAuthor(true);
 
-      const newAuthorData: AuthorCreate = {
-        author_name: newAuthorName,
-        author_description: newAuthorDescription,
-      }
-
-      const parsed = authorCreate.parse(newAuthorData);
-
-      const newAuthor = await AuthorService.addNewAuthor(parsed);
+      const newAuthor = await AuthorService.addNewAuthor({
+        author_name: authorData.author_name,
+        author_description: authorData.author_description,
+      }, authorData.file ?? undefined);
 
       setNewAuthor(newAuthor);
     }
@@ -224,7 +218,6 @@ function BooksEditPage() {
   }
 
   function handleAuthorModalOpen(){
-    setNewAuthorName(authorKeyword);
     setShowAddAuthorModal(true);
   }
 
@@ -264,18 +257,14 @@ function BooksEditPage() {
 
   // -- publisher functions
 
-    async function handleAddPublisher(){
+    async function handleAddPublisher(publisherData: PublisherCreateAdd){
     try{
       setIsAddingPublisher(true);
 
-      const newPublisherData: PublisherCreate = {
-        publisher_name: newPublisherName,
-        publisher_description: newPublisherDescription,
-      }
-
-      const parsed = publisherCreate.parse(newPublisherData);
-
-      const newPublisher = await PublisherService.addNewPublisher(parsed);
+      const newPublisher = await PublisherService.addNewPublisher({
+        publisher_name: publisherData.publisher_name,
+        publisher_description: publisherData.publisher_description,
+      }, publisherData.file ?? undefined);
 
       setNewPublisher(newPublisher);
     }
@@ -315,7 +304,6 @@ function BooksEditPage() {
   }
 
   function handlePublisherModalOpen(){
-    setNewPublisherName(publisherKeyword);
     setShowAddPublisherModal(true);
   }
 
@@ -355,7 +343,8 @@ function BooksEditPage() {
 
   const genreListUI = (newGenre ?? genre)?.map((g) => (
     <GenreLabel 
-      genre={g}
+      genre_id={g.genre_id}
+      genre_name={g.genre_name}
       onDelete={removeGenre}
     />
   ));
@@ -375,95 +364,25 @@ function BooksEditPage() {
 
   return (
     <Card className="shadow-sm">
-      {/* Author Modal */}
-      <Modal 
-        show={showAddAuthorModal} 
-        onHide={handleAuthorModalClose}
-      >
-        <Modal.Header closeButton>
-          <Modal.Title>Add A New Author</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <Form.Group className="mb-3" controlId="formNewAuthorName">
-            <Form.Label>Author Name</Form.Label>
-            <Form.Control
-              name="newAuthorName"
-              value={newAuthorName}
-              onChange={(e) => setNewAuthorName(e.target.value)}
-            />
-          </Form.Group>
-          <Form.Group className="mb-3" controlId="formNewAuthorDescription">
-            <Form.Label>Author Description</Form.Label>
-            <Form.Control
-              as="textarea"
-              rows={4}
-              name="newAuthorDescription"
-              value={newAuthorDescription}
-              onChange={(e) => setNewAuthorDescription(e.target.value)}
-            />
-          </Form.Group>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button 
-            variant="secondary" 
-            onClick={handleAuthorModalClose}
-            disabled={isAddingAuthor}
-          >
-            Close
-          </Button>
-          <Button 
-            variant="primary" 
-            onClick={handleAddAuthor}
-          >
-            Save Changes
-          </Button>
-        </Modal.Footer>
-      </Modal>
+      <AuthorAddModal 
+        show={showAddAuthorModal}
+        onAdd={handleAddAuthor}
+        onClose={handleAuthorModalClose}
+        initialAuthor={{
+          author_name: authorKeyword,
+        }}
+        isLoading={isAddingAuthor}
+      />
 
-      {/* Publisher Modal */}
-      <Modal 
-        show={showAddPublisherModal} 
-        onHide={handlePublisherModalClose}
-      >
-        <Modal.Header closeButton>
-          <Modal.Title>Add A New Publisher</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <Form.Group className="mb-3" controlId="formNewPublisherName">
-            <Form.Label>Publisher Name</Form.Label>
-            <Form.Control
-              name="newPublisherName"
-              value={newPublisherName}
-              onChange={(e) => setNewPublisherName(e.target.value)}
-            />
-          </Form.Group>
-          <Form.Group className="mb-3" controlId="formNewPublisherDescription">
-            <Form.Label>Publisher Description</Form.Label>
-            <Form.Control
-              as="textarea"
-              rows={4}
-              name="newPublisherDescription"
-              value={newPublisherDescription}
-              onChange={(e) => setNewPublisherDescription(e.target.value)}
-            />
-          </Form.Group>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button 
-            variant="secondary" 
-            onClick={handlePublisherModalClose}
-            disabled={isAddingPublisher}
-          >
-            Close
-          </Button>
-          <Button 
-            variant="primary" 
-            onClick={handleAddPublisher}
-          >
-            Save Changes
-          </Button>
-        </Modal.Footer>
-      </Modal>
+      <PublisherAddModal 
+        onAdd={handleAddPublisher}
+        onClose={handlePublisherModalClose}
+        show={showAddPublisherModal}
+        initialPublisher={{
+          publisher_name: publisherKeyword,
+        }}
+        isLoading={isAddingPublisher}
+      />
 
       <Card.Body>
         <Form onSubmit={onSubmit}>

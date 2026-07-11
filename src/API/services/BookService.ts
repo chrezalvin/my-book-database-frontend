@@ -3,13 +3,15 @@ import { Book, bookModel } from "../models/Book";
 import { CreateBook, UpdateBook } from "../schemas/BookSchema";
 
 export class BookService {
-    static async getBooksByPage(page: number, keyword?: string): Promise<Book[]> {
-        const res = await axiosInstance.get(`/books`, {
-            params: {
-                page: page,
-                keyword: keyword || "",
-            }
-        });
+    static async getBooksByPage(
+        params: {
+            page: number, 
+            keyword?: string,
+            author_id?: string,
+            publisher_id?: string,
+        }
+    ): Promise<Book[]> {
+        const res = await axiosInstance.get(`/books`, {params});
     
         const data = res.data as unknown;
     

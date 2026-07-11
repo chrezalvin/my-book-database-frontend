@@ -3,7 +3,8 @@ import Header from "../../components/Header";
 import { Outlet, useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../hooks/customRedux";
 import { AuthenticationService } from "../../API/services/AuthenticationService";
-import { resetUser } from "../../store/User";
+import { assignUser, resetUser } from "../../store/User";
+import { useEffect } from "react";
 
 function BooksLayout() {
     const user = useAppSelector((state) => state.user);
@@ -16,6 +17,23 @@ function BooksLayout() {
 
         navigate("/books");
     }
+
+    async function checkIfLoggedin(){
+        if (user)
+            return;
+
+        try{
+            const userData = await AuthenticationService.getUserData();
+            dispatch(assignUser(userData));
+        }
+        catch(err){
+            // not authenticated, do nothing
+        }
+    }
+
+    useEffect(() => {
+        checkIfLoggedin();
+    }, []);
 
     return (
         <Container className="pb-4">

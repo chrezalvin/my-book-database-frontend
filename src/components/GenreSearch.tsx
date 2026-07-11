@@ -3,10 +3,11 @@ import { Genre } from "../API/models/Genre";
 import { GenreService } from "../API/services/GenreService";
 import { Button, Form, InputGroup, ListGroup, Spinner } from "react-bootstrap";
 import { createGenreSchema } from "../API/schemas/GenreSchema";
+import { Book } from "../API/models/Book";
 
 export interface GenreSearchProps {
     show?: boolean;
-    currentGenres?: Genre[];
+    currentGenres?: (Genre | Book["genres"][number])[];
     onGenreSelect: (genre: Genre) => void;
 }
 

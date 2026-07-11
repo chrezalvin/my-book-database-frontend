@@ -24,7 +24,7 @@ export const bookModel = z.object({
             genre_id: z.uuid(),
             genre_name: z.string(),
         })
-    ).nullable(),
+    ),
 })
 
 export type Book = z.infer<typeof bookModel>;

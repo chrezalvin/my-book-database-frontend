@@ -1,5 +1,6 @@
 import { axiosInstance } from "../axiosConfig";
-import { Author, AuthorCreate, authorModel, AuthorUpdate } from "../models/Author";
+import { Author, authorModel } from "../models/Author";
+import { AuthorCreate, AuthorUpdate } from "../schemas/AuthorSchema";
 
 export class AuthorService {
     static async searchAuthors(authorName: string): Promise<Author[]> {
@@ -32,16 +33,40 @@ export class AuthorService {
         return parsed;
     }
 
-    static async addNewAuthor(authorCreate: AuthorCreate): Promise<Author> {
-        const res = await axiosInstance.post(`/authors`, authorCreate);
+    static async addNewAuthor(authorCreate: AuthorCreate, authorImg?: File): Promise<Author> {
+        const formData = new FormData();
+        formData.append("author", JSON.stringify(authorCreate));
+
+        if(authorImg)
+            formData.append("image", authorImg);
+
+        const res = await axiosInstance.post(`/authors`, formData, {
+            headers: {
+                "Content-Type": "multipart/form-data",
+            },
+        });
 
         const parsed = authorModel.parse(res.data);
 
         return parsed;
     }
 
-    static async editAuthor(author_id: Author["author_id"], authorUpdate: AuthorUpdate): Promise<Author> {
-        const res = await axiosInstance.patch(`/authors/${author_id}`, authorUpdate);
+    static async editAuthor(
+        author_id: Author["author_id"], 
+        authorUpdate: AuthorUpdate,
+        authorImg?: File
+    ): Promise<Author> {
+        const formData = new FormData();
+        formData.append("author", JSON.stringify(authorUpdate));
+
+        if(authorImg)
+            formData.append("image", authorImg);
+
+        const res = await axiosInstance.patch(`/authors/${author_id}`, formData, {
+            headers: {
+                "Content-Type": "multipart/form-data",
+            },
+        });
 
         const parsed = authorModel.parse(res.data);
 

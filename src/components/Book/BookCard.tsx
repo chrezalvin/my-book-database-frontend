@@ -1,19 +1,27 @@
-import { Card, Button } from "react-bootstrap";
-import { Book } from "../API/models/Book";
-import GenreLabel from "./GenreLabel";
+import { Card, Button, OverlayTrigger, Tooltip } from "react-bootstrap";
+import { Book } from "../../API/models/Book";
+import GenreLabel from "../GenreLabel";
+import { Publisher } from "../../API/models/Publisher";
+import { Author } from "../../API/models/Author";
 
 interface BookCardProps {
   book: Book;
   onView?: (book: Book) => void;
   onEdit?: (book: Book) => void;
   onDelete?: (book: Book) => void;
+  onPublisherClick?: (publisher_id: Publisher["publisher_id"]) => void;
+  onAuthorClick?: (author_id: Author["author_id"]) => void;
   allowedToEdit?: boolean;
   allowedToDelete?: boolean;
 }
 
 export default function BookCard(props: BookCardProps) {
   const genreLabels = props.book.genres?.map((genre) => (
-    <GenreLabel key={genre.genre_id} genre={genre} />
+    <GenreLabel 
+      key={genre.genre_id} 
+      genre_id={genre.genre_id}
+      genre_name={genre.genre_name}
+    />
   ));
 
   return (
@@ -57,11 +65,24 @@ export default function BookCard(props: BookCardProps) {
           {props.book.title}
         </Card.Title>
 
-        <Card.Subtitle className="mb-2 text-muted">
-          {props.book.author_name ?? "No Author"}
-        </Card.Subtitle>
+        <OverlayTrigger
+          placement="top-start"
+          overlay={<Tooltip>
+            {props.book.author_name ?? "No Author"}
+          </Tooltip>}
+        >
+          <Card.Subtitle 
+            className={`mb-2 ${props.onAuthorClick && props.book.author_id ? "text-primary" : "text-muted"}`}
+            onClick={props.onAuthorClick && props.book.author_id ? () => props.onAuthorClick!(props.book.author_id!) : undefined}
+          >
+            {props.book.author_name ?? "No Author"}
+          </Card.Subtitle>
+        </OverlayTrigger>
 
-        <Card.Text className="small text-muted mb-2">
+        <Card.Text 
+          className={`small mb-2 ${props.onPublisherClick && props.book.publisher_id ? "text-primary" : "text-muted"}`}
+          onClick={props.onPublisherClick && props.book.publisher_id ? () => props.onPublisherClick!(props.book.publisher_id!) : undefined}
+        >
           {props.book.publisher_name ?? "No Publisher"} • {props.book.publication_year}
         </Card.Text>
 
