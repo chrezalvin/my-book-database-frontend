@@ -11,9 +11,13 @@ interface BookCardProps {
   allowedToDelete?: boolean;
 }
 
-export default function BookCard(props: BookCardProps) {
+export default function BookCardSimple(props: BookCardProps) {
   const genreLabels = props.book.genres?.map((genre) => (
-    <GenreLabel key={genre.genre_id} genre={genre} />
+    <GenreLabel 
+      key={genre.genre_id} 
+      genre_id={genre.genre_id}
+      genre_name={genre.genre_name}
+    />
   ));
 
   return (
@@ -58,11 +62,11 @@ export default function BookCard(props: BookCardProps) {
         </Card.Title>
 
         <Card.Subtitle className="mb-2 text-muted">
-          {props.book.author}
+          {props.book.author_name}
         </Card.Subtitle>
 
         <Card.Text className="small text-muted mb-2">
-          {props.book.publisher} • {props.book.publication_year}
+          {props.book.publisher_name} • {props.book.publication_year}
         </Card.Text>
 
         <div className="mb-2 d-flex flex-wrap gap-1">

@@ -3,13 +3,15 @@ import { Book, bookModel } from "../models/Book";
 import { CreateBook, UpdateBook } from "../schemas/BookSchema";
 
 export class BookService {
-    static async getBooksByPage(page: number, keyword?: string): Promise<Book[]> {
-        const res = await axiosInstance.get(`/books`, {
-            params: {
-                page: page,
-                keyword: keyword || "",
-            }
-        });
+    static async getBooksByPage(
+        params: {
+            page: number, 
+            keyword?: string,
+            author_id?: string,
+            publisher_id?: string,
+        }
+    ): Promise<Book[]> {
+        const res = await axiosInstance.get(`/books`, {params});
     
         const data = res.data as unknown;
     
@@ -42,7 +44,7 @@ export class BookService {
         if(cover_img)
             formData.append("image", cover_img);
     
-        const res = await axiosInstance.post(`/books/add`, formData, {
+        const res = await axiosInstance.post(`/books`, formData, {
             headers: {
                 "Content-Type": "multipart/form-data",
             },
@@ -59,7 +61,7 @@ export class BookService {
         if(cover_img)
             formData.append("image", cover_img);
         
-        const res = await axiosInstance.post(`/books/${book_id}/edit`, formData, {
+        const res = await axiosInstance.patch(`/books/${book_id}`, formData, {
             headers: {
                 "Content-Type": "multipart/form-data",
             },
@@ -71,7 +73,7 @@ export class BookService {
     }
     
     static async deleteBook(book_id: Book["book_id"]): Promise<boolean>{
-        const res = await axiosInstance.get(`/books/${book_id}/delete`);
+        const res = await axiosInstance.delete(`/books/${book_id}`);
         
         if(!("success" in res.data))
             throw new Error(`Response data does not contain 'success' property: ${JSON.stringify(res.data)}`);

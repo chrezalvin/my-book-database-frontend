@@ -18,8 +18,9 @@ This project was made in:
 - NPM: 10.5.0
 
 ## List of Features
-- typescript-based type checking
-- search book by name
+- zod-based type checking
+- search book by name, author, and publisher
+- infinite load by scrolling
 - `redux` state management (for user data)
 - localstorage JWT storing system
 - bootstrap styling via `react-bootstrap`

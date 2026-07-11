@@ -5,6 +5,8 @@ import RedirectToBooks from "./RedirectToBooks";
 import LoginPage from "./LoginPage";
 import BooksLayout from "./books/BooksLayout";
 import BooksEditPage from "./books/BooksEditPage";
+import { AuthorPage } from "./books/AuthorPage";
+import { PublisherPage } from "./books/PublisherPage";
 
 export const router = createBrowserRouter([
     {
@@ -33,6 +35,14 @@ export const router = createBrowserRouter([
             {
                 path: "/books/edit/:book_id",
                 element: <BooksEditPage />
+            },
+            {
+                path: "/authors/:author_id",
+                element: <AuthorPage />
+            },
+            {
+                path: "/publishers/:publisher_id",
+                element: <PublisherPage />
             }
         ]
     }
