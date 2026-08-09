@@ -2,18 +2,14 @@ import { useState } from "react";
 import { Button, Form, Modal } from "react-bootstrap";
 import { Publisher } from "../../API/models/Publisher";
 import { PublisherUpdate, updatePublisherSchema } from "../../API/schemas/PublisherSchema";
-
-export interface PublisherEdit extends PublisherUpdate{
-    file?: File;
-}
+import * as PublisherService from "../../API/services/PublisherService";
 
 export interface PublisherAddModalProps{
     initialPublisher: Publisher;
-    onEdit: (publisher: PublisherEdit) => void;
+    onPublisherEdited: (publisher: Publisher) => void;
     onClose: () => void;
 
     show?: boolean;
-    isLoading?: boolean;
 }
 
 export default function PublisherEditModal(props: PublisherAddModalProps){
@@ -21,18 +17,32 @@ export default function PublisherEditModal(props: PublisherAddModalProps){
     const [publisherDescription, setPublisherDescription] = useState<PublisherUpdate["publisher_description"] | undefined>(undefined);
     const [publisherImg, setPublisherImg] = useState<File | null | undefined>(undefined);
 
-    function updatePublisher(){
+    const [isLoading, setIsLoading] = useState<boolean>(false);
+
+    async function updatePublisher(){
         try{
-            const parsed = updatePublisherSchema.parse({ 
-                publisher_name: publisherName, 
-                publisher_description: publisherDescription 
-            });
-    
-            props.onEdit({...parsed, file: publisherImg ?? undefined});
+          setIsLoading(true);
+
+          const parsed = updatePublisherSchema.parse({ 
+              publisher_name: publisherName, 
+              publisher_description: publisherDescription 
+          });
+          
+          const editedPublisher = await PublisherService.editPublisher(props.initialPublisher.publisher_id, parsed, publisherImg ?? undefined);
+
+          props.onPublisherEdited(editedPublisher);
         }
         catch(error){
             console.error("Error updating publisher:", error);
         }
+        finally{
+          setIsLoading(false);
+        }
+    }
+
+    function handleClose(){
+      if(!isLoading)
+        props.onClose();
     }
 
     function handleReset(){
@@ -44,7 +54,7 @@ export default function PublisherEditModal(props: PublisherAddModalProps){
     return (
       <Modal 
         show={props.show ?? false} 
-        onHide={props.onClose}
+        onHide={handleClose}
       >
         <Modal.Header closeButton>
           <Modal.Title>Add A New Publisher</Modal.Title>
@@ -54,8 +64,9 @@ export default function PublisherEditModal(props: PublisherAddModalProps){
             <Form.Label>Publisher Name</Form.Label>
             <Form.Control
               name="newPublisherName"
-              value={publisherName ?? props.initialPublisher.publisher_name}
+              disabled={isLoading}
               onChange={(e) => setPublisherName(e.target.value)}
+              value={publisherName ?? props.initialPublisher.publisher_name}
             />
           </Form.Group>
           <Form.Group className="mb-3" controlId="formNewPublisherDescription">
@@ -64,8 +75,9 @@ export default function PublisherEditModal(props: PublisherAddModalProps){
               as="textarea"
               rows={4}
               name="newPublisherDescription"
-              value={publisherDescription ?? props.initialPublisher.publisher_description ?? ""}
+              disabled={isLoading}
               onChange={(e) => setPublisherDescription(e.target.value)}
+              value={publisherDescription ?? props.initialPublisher.publisher_description ?? ""}
             />
           </Form.Group>
 
@@ -86,6 +98,7 @@ export default function PublisherEditModal(props: PublisherAddModalProps){
             <Form.Control
               type="file"
               accept="image/*"
+              disabled={isLoading}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                 if (e.target.files && e.target.files.length > 0) {
                     setPublisherImg(e.target.files[0]);
@@ -99,22 +112,22 @@ export default function PublisherEditModal(props: PublisherAddModalProps){
         <Modal.Footer>
           <Button 
             variant="secondary" 
-            onClick={props.onClose}
-            disabled={props.isLoading}
+            onClick={handleClose}
+            disabled={isLoading}
           >
             Close
           </Button>
           <Button 
             variant="primary" 
             onClick={updatePublisher}
-            disabled={props.isLoading}
+            disabled={isLoading}
           >
             Edit Publisher
           </Button>
           <Button
             variant="warning"
             onClick={handleReset}
-            disabled={props.isLoading}
+            disabled={isLoading}
           >
             Reset
           </Button>

@@ -1,13 +1,14 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { Author } from "../../API/models/Author";
 import { useEffect, useState } from "react";
-import { AuthorService } from "../../API/services/AuthorService";
+import * as AuthorService from "../../API/services/AuthorService";
 import Dashboard from "../Dashboard";
 import CardSimple from "../../components/CardSimple";
 import defaultAvatar from "../../placeholders/default-avatar.jpg";
 import { Button } from "react-bootstrap";
-import AuthorEditModal, { AuthorEdit } from "../../components/Author/AuthorEditModal";
+import AuthorEditModal from "../../components/Author/AuthorEditModal";
 import { useAppSelector } from "../../hooks/customRedux";
+import { AuthorDeleteModal } from "../../components/Author/AuthorDeleteModal";
 
 export function AuthorPage() {
     const user = useAppSelector((state) => state.user);
@@ -19,7 +20,7 @@ export function AuthorPage() {
     const [isAuthorLoading, setAuthorLoading] = useState<boolean>(true);
 
     const [showEditAuthorModal, setShowEditAuthorModal] = useState(false);
-    const [isEditingAuthor, setIsEditingAuthor] = useState(false);
+    const [showDeleteAuthorModal, setShowDeleteAuthorModal] = useState<boolean>(false);
 
     async function fetchAuthor(){
         if(!author_id)
@@ -38,41 +39,6 @@ export function AuthorPage() {
         }
     }
 
-    async function handleEditAuthor(updatedAuthor: AuthorEdit){
-        if(!author_id)
-            return;
-
-        try{
-            setIsEditingAuthor(true);
-            const newAuthor = await AuthorService.editAuthor(
-                author_id, 
-                {
-                    author_description: updatedAuthor.author_description,
-                    author_name: updatedAuthor.author_name
-                },
-                updatedAuthor.file
-            );
-
-            setAuthor(newAuthor);
-            setShowEditAuthorModal(false);
-        }
-        catch(error){
-            console.error("Error editing author:", error);
-        }
-        finally{
-            setIsEditingAuthor(false);
-        }
-    }
-
-    function handleEditAuthorModalOpen(){
-        setShowEditAuthorModal(true);
-    }
-
-    function handleEditAuthorModalClose(){
-        if(!isEditingAuthor)
-            setShowEditAuthorModal(false);
-    }
-
     useEffect(() => {
         fetchAuthor();
     }, [])
@@ -89,9 +55,20 @@ export function AuthorPage() {
             {
                 user && (
                     <Button 
-                        onClick={handleEditAuthorModalOpen}
+                        onClick={() => setShowEditAuthorModal(true)}
                     >
                         Edit Author
+                    </Button>
+                )
+            }
+            {
+                user && (
+                    <Button 
+                        className="ms-2"
+                        variant="danger"
+                        onClick={() => setShowDeleteAuthorModal(true)}
+                    >
+                        Delete Author
                     </Button>
                 )
             }
@@ -118,13 +95,24 @@ export function AuthorPage() {
                 author && (
                     <AuthorEditModal 
                         initialAuthor={author}
-                        onClose={handleEditAuthorModalClose}
-                        onEdit={handleEditAuthor}
-                        isLoading={isEditingAuthor}
+                        onClose={() => setShowEditAuthorModal(false)}
+                        onAuthorEdit={setAuthor}
                         show={showEditAuthorModal && user !== null}
+                    />
+                )
+            }
+            {
+                author && (
+                    <AuthorDeleteModal 
+                        author={author}
+                        onAuthorDeleted={() => navigate("/books")}
+                        onClose={() => setShowDeleteAuthorModal(false)}
+                        show={showDeleteAuthorModal && user !== null}
                     />
                 )
             }
         </>
     );
 }
+
+export default AuthorPage;

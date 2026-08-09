@@ -3,7 +3,7 @@ import { useAppSelector } from "../../hooks/customRedux";
 import Dashboard from "../Dashboard";
 import { useNavigate } from "react-router-dom";
 
-function BooksPage() {
+export function BooksPage() {
     const user = useAppSelector((state) => state.user);
     const navigate = useNavigate();
 

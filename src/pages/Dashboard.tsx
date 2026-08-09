@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { BookService } from "../API/services/BookService";
+import * as BookService from "../API/services/BookService";
 import { Book } from "../API/models/Book";
 
 import {
@@ -19,6 +19,7 @@ export interface Dashboard {
   additionalParams?: {
     author_id?: string;
     publisher_id?: string;
+    genre_id?: string;
   }
 }
 
@@ -45,12 +46,20 @@ function Dashboard(props: Dashboard) {
 
     const [searchKeyword, setSearchKeyword] = useState<string | null>(null);
 
-    function gotoAuthorPage(author_id: string){
-      navigate(`/authors/${author_id}`);
+    function gotoAuthorPage(author: Book["author"]){
+      navigate(`/authors/${author?.author_id}`);
     }
 
-    function gotoPublisherPage(publisher_id: string){
-      navigate(`/publishers/${publisher_id}`);
+    function gotoPublisherPage(publisher: Book["publisher"]){
+      navigate(`/publishers/${publisher?.publisher_id}`);
+    }
+
+    function gotoEditPage(book: Book){
+      navigate(`/books/edit/${book.book_id}`);
+    }
+
+    function gotoGenrePage(genre: Book["genres"][number]){
+      navigate(`/genres/${genre.genre_id}`);
     }
 
     async function deleteSelectedBook(){
@@ -92,6 +101,7 @@ function Dashboard(props: Dashboard) {
       }
       catch(err){
         setError("Failed to fetch books");
+        setHasMore(false);
       }
       finally{
         setIsLoading(false);
@@ -181,20 +191,21 @@ function Dashboard(props: Dashboard) {
       />
 
       <Row xs={1} sm={2} md={3} lg={3} className="g-4">
-        {books.map((book) => (
-          <Col key={book.book_id}>
+        {books.map((book) => {
+          const author_id = book.author_id;
+
+          return (<Col key={book.book_id}>
             <BookCard
               book={book}
               onView={setSelectedBook}
-              onDelete={setSelectedBookToDelete}
-              onEdit={(book) => navigate(`/books/edit/${book.book_id}`)}
-              allowedToEdit={allowedToEdit}
-              allowedToDelete={allowedToEdit}
+              onDelete={allowedToEdit ? setSelectedBookToDelete : undefined}
+              onEdit={allowedToEdit ? gotoEditPage : undefined}
               onAuthorClick={props.additionalParams?.author_id ? undefined : gotoAuthorPage}
               onPublisherClick={props.additionalParams?.publisher_id ? undefined : gotoPublisherPage}
+              onGenreClick={props.additionalParams?.genre_id ? undefined : gotoGenrePage}
             />
-          </Col>
-        ))}
+          </Col>)
+        })}
       </Row>
 
       {error && <Alert variant="danger">{error}</Alert>}

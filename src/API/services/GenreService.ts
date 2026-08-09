@@ -2,79 +2,87 @@ import { axiosInstance } from "../axiosConfig";
 import { Genre, genreModel } from "../models/Genre";
 import { GenreCreate, GenreUpdate } from "../schemas/GenreSchema";
 
-export class GenreService {
-    static async getGenres(options: {keyword?: string, exclude_genre_ids?: string[]}): Promise<Genre[]> {
-        const params: Record<string, string> = {};
+export async function getGenres(options: {keyword?: string, exclude_genre_ids?: string[]}): Promise<Genre[]> {
+    const params: Record<string, string> = {};
 
-        if(options.keyword)
-            params.keyword = options.keyword;
+    if(options.keyword)
+        params.keyword = options.keyword;
 
-        if(options.exclude_genre_ids && options.exclude_genre_ids.length > 0)
-            params.exclude_genre_ids = options.exclude_genre_ids.join(",");
+    if(options.exclude_genre_ids && options.exclude_genre_ids.length > 0)
+        params.exclude_genre_ids = options.exclude_genre_ids.join(",");
 
-        const res = await axiosInstance.get(`/genres`, { params });
+    const res = await axiosInstance.get(`/genres`, { params });
 
-        const data = res.data as unknown;
+    const data = res.data as unknown;
 
-        if(!Array.isArray(data))
-            throw new Error(`Response data is not an array: ${JSON.stringify(data)}`);
+    if(!Array.isArray(data))
+        throw new Error(`Response data is not an array: ${JSON.stringify(data)}`);
 
-        const genres: Genre[] = [];
-        for(const item of data){
-            const parsed = genreModel.parse(item);
+    const genres: Genre[] = [];
+    for(const item of data){
+        const parsed = genreModel.parse(item);
 
-            genres.push(parsed);
-        }
-
-        return genres;
+        genres.push(parsed);
     }
 
-    static async addNewGenre(genre: GenreCreate, genre_img?: File): Promise<Genre> {
-        const formData = new FormData();
-        formData.append("genre", JSON.stringify(genre));
+    return genres;
+}
 
-        if(genre_img)
-            formData.append("image", genre_img);
+export async function getGenre(genre_id: Genre["genre_id"]): Promise<Genre>{
+    const res = await axiosInstance.get(`/genres/${genre_id}`);
 
-        const res = await axiosInstance.post(`/genres`, formData, {
-            headers: {
-                "Content-Type": "multipart/form-data",
-            },
-        });
+    const data = res.data as unknown;
 
-        const parsed = genreModel.parse(res.data);
+    const parsed = genreModel.parse(data);
 
-        return parsed;
-    }
+    return parsed;
+}
 
-    static async editGenre(
-        genre_id: Genre["genre_id"], 
-        genreUpdate: GenreUpdate,
-        genre_img?: File
-    ): Promise<Genre> {
-        const formData = new FormData();
-        formData.append("genre", JSON.stringify(genreUpdate));
+export async function addNewGenre(genre: GenreCreate, genre_img?: File): Promise<Genre> {
+    const formData = new FormData();
+    formData.append("genre", JSON.stringify(genre));
 
-        if(genre_img)
-            formData.append("image", genre_img);
+    if(genre_img)
+        formData.append("image", genre_img);
 
-        const res = await axiosInstance.patch(`/genres/${genre_id}`, formData, {
-            headers: {
-                "Content-Type": "multipart/form-data",
-            },
-        });
+    const res = await axiosInstance.post(`/genres`, formData, {
+        headers: {
+            "Content-Type": "multipart/form-data",
+        },
+    });
 
-        const parsed = genreModel.parse(res.data);
+    const parsed = genreModel.parse(res.data);
 
-        return parsed;
-    }
+    return parsed;
+}
 
-    static async deleteGenre(genre_id: Genre["genre_id"]): Promise<boolean> {
-        const res = await axiosInstance.delete(`/genres/${genre_id}`);
+export async function editGenre(
+    genre_id: Genre["genre_id"], 
+    genreUpdate: GenreUpdate,
+    genre_img?: File
+): Promise<Genre> {
+    const formData = new FormData();
+    formData.append("genre", JSON.stringify(genreUpdate));
 
-        if(!("success" in res.data))
-            throw new Error(`Response data does not contain 'success' field: ${JSON.stringify(res.data)}`);
+    if(genre_img)
+        formData.append("image", genre_img);
 
-        return res.data.success;
-    }
+    const res = await axiosInstance.patch(`/genres/${genre_id}`, formData, {
+        headers: {
+            "Content-Type": "multipart/form-data",
+        },
+    });
+
+    const parsed = genreModel.parse(res.data);
+
+    return parsed;
+}
+
+export async function deleteGenre(genre_id: Genre["genre_id"]): Promise<boolean> {
+    const res = await axiosInstance.delete(`/genres/${genre_id}`);
+
+    if(!("success" in res.data))
+        throw new Error(`Response data does not contain 'success' field: ${JSON.stringify(res.data)}`);
+
+    return res.data.success;
 }

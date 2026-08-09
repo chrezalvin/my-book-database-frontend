@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Genre } from "../API/models/Genre";
-import { GenreService } from "../API/services/GenreService";
+import * as GenreService from "../API/services/GenreService";
 import { Button, Form, InputGroup, ListGroup, Spinner } from "react-bootstrap";
 import { createGenreSchema } from "../API/schemas/GenreSchema";
 import { Book } from "../API/models/Book";

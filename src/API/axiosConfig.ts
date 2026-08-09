@@ -2,7 +2,7 @@ import debug from "debug";
 
 import axios from "axios";
 import { BASE_URL } from "../config";
-import { AuthenticationService } from "./services/AuthenticationService";
+import * as AuthenticationService from "./services/AuthenticationService";
 
 const log = debug("app:axiosConfig");
 
@@ -36,7 +36,6 @@ axiosInstance.interceptors.response.use(
         log(`response from ${response.config.method} ${response.config.url}`);
 
         if(typeof response.data == "object" && "data" in response.data){
-            log(`response data: ${JSON.stringify(response.data)}, setting to response.data.data`);
             response.data = response.data.data;
         }
         else{

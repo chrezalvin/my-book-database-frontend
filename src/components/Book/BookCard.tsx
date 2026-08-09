@@ -1,26 +1,26 @@
 import { Card, Button, OverlayTrigger, Tooltip } from "react-bootstrap";
 import { Book } from "../../API/models/Book";
 import GenreLabel from "../GenreLabel";
-import { Publisher } from "../../API/models/Publisher";
-import { Author } from "../../API/models/Author";
 
 interface BookCardProps {
   book: Book;
   onView?: (book: Book) => void;
   onEdit?: (book: Book) => void;
   onDelete?: (book: Book) => void;
-  onPublisherClick?: (publisher_id: Publisher["publisher_id"]) => void;
-  onAuthorClick?: (author_id: Author["author_id"]) => void;
-  allowedToEdit?: boolean;
-  allowedToDelete?: boolean;
+  onPublisherClick?: (publisher: NonNullable<Book["publisher"]>) => void;
+  onAuthorClick?: (author: NonNullable<Book["author"]>) => void;
+  onGenreClick?: (genre: NonNullable<Book["genres"][number]>) => void;
 }
 
 export default function BookCard(props: BookCardProps) {
+  const publisher = props.book.publisher;
+  const author = props.book.author;
+  
   const genreLabels = props.book.genres?.map((genre) => (
     <GenreLabel 
       key={genre.genre_id} 
-      genre_id={genre.genre_id}
-      genre_name={genre.genre_name}
+      genre={genre}
+      onClick={props.onGenreClick}
     />
   ));
 
@@ -64,27 +64,34 @@ export default function BookCard(props: BookCardProps) {
         <Card.Title className="text-truncate">
           {props.book.title}
         </Card.Title>
+        {
+          author && (
+            <OverlayTrigger
+              placement="top-start"
+              overlay={<Tooltip>
+                {author.author_name}
+              </Tooltip>}
+            >
+              <Card.Subtitle 
+                className={`mb-2 ${props.onAuthorClick  ? "text-primary" : "text-muted"}`}
+                onClick={() => props.onAuthorClick?.(author)}
+              >
+                {author.author_name}
+              </Card.Subtitle>
+            </OverlayTrigger>
+          )
+        }
 
-        <OverlayTrigger
-          placement="top-start"
-          overlay={<Tooltip>
-            {props.book.author_name ?? "No Author"}
-          </Tooltip>}
-        >
-          <Card.Subtitle 
-            className={`mb-2 ${props.onAuthorClick && props.book.author_id ? "text-primary" : "text-muted"}`}
-            onClick={props.onAuthorClick && props.book.author_id ? () => props.onAuthorClick!(props.book.author_id!) : undefined}
-          >
-            {props.book.author_name ?? "No Author"}
-          </Card.Subtitle>
-        </OverlayTrigger>
-
-        <Card.Text 
-          className={`small mb-2 ${props.onPublisherClick && props.book.publisher_id ? "text-primary" : "text-muted"}`}
-          onClick={props.onPublisherClick && props.book.publisher_id ? () => props.onPublisherClick!(props.book.publisher_id!) : undefined}
-        >
-          {props.book.publisher_name ?? "No Publisher"} • {props.book.publication_year}
-        </Card.Text>
+        {
+          publisher && (
+            <Card.Text 
+              className={`small mb-2 ${props.onPublisherClick ? "text-primary" : "text-muted"}`}
+              onClick={() => props.onPublisherClick?.(publisher)}
+            >
+              {props.book.publisher?.publisher_name ?? "No Publisher"} • {props.book.publication_year}
+            </Card.Text>
+          )
+        }
 
         <div className="mb-2 d-flex flex-wrap gap-1">
           {genreLabels}
@@ -101,7 +108,7 @@ export default function BookCard(props: BookCardProps) {
 
           {/* Future CRUD */}
           {
-            props.allowedToEdit && (
+            props.onEdit && (
               <Button 
                 size="sm" 
                 variant="outline-secondary" 
@@ -114,7 +121,7 @@ export default function BookCard(props: BookCardProps) {
           }
 
           {
-            props.allowedToDelete && (
+            props.onDelete && (
               <Button 
                 size="sm" 
                 variant="outline-danger" 

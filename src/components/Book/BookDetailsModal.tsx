@@ -34,8 +34,8 @@ export default function BookDetailsModal(props: BookDetailsModalProps) {
             )
           }
 
-          <p><strong>Author:</strong> {props.book?.author_name}</p>
-          <p><strong>Publisher:</strong> {props.book?.publisher_name}</p>
+          <p><strong>Author:</strong> {props.book?.author?.author_name}</p>
+          <p><strong>Publisher:</strong> {props.book?.publisher?.publisher_name}</p>
           <p><strong>Year:</strong> {props.book?.publication_year}</p>
           <p><strong>Language:</strong> {props.book?.language}</p>
           <p><strong>Genre:</strong> {props.book?.genres?.map(g => g.genre_name).join(", ")}</p>
