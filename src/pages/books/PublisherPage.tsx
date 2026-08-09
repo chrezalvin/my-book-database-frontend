@@ -1,13 +1,14 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { Publisher } from "../../API/models/Publisher";
 import { useEffect, useState } from "react";
-import { PublisherService } from "../../API/services/PublisherService";
+import * as PublisherService from "../../API/services/PublisherService";
 import Dashboard from "../Dashboard";
 import CardSimple from "../../components/CardSimple";
 import defaultImage from "../../placeholders/default-image.jpg";
 import { useAppSelector } from "../../hooks/customRedux";
 import { Button } from "react-bootstrap";
-import PublisherEditModal, { PublisherEdit } from "../../components/Publisher/PublisherEditModal";
+import PublisherEditModal from "../../components/Publisher/PublisherEditModal";
+import { PublisherDeleteModal } from "../../components/Publisher/AuthorDeleteModal";
 
 export function PublisherPage() {
     const user = useAppSelector((state) => state.user);
@@ -18,7 +19,7 @@ export function PublisherPage() {
     const [isPublisherLoading, setPublisherLoading] = useState<boolean>(true);
 
     const [showEditPublisherModal, setShowEditPublisherModal] = useState(false);
-    const [isEditingPublisher, setIsEditingPublisher] = useState(false);
+    const [showDeletePublisherModal, setShowDeletePublisherModal] = useState<boolean>(false);
 
     async function fetchPublisher(){
         if(!publisher_id)
@@ -30,46 +31,11 @@ export function PublisherPage() {
             setPublisher(res);
         }
         catch(error){
-            console.error("Error fetching author:", error);
+            console.error("Error fetching publisher:", error);
         }
         finally{
             setPublisherLoading(false);
         }
-    }
-
-    async function editPublisher(publisherData: PublisherEdit){
-        if(!publisher_id)
-            return;
-
-        try{
-            setIsEditingPublisher(true);
-            const newPublisher = await PublisherService.editPublisher(
-                publisher_id, 
-                {
-                    publisher_description: publisherData.publisher_description,
-                    publisher_name: publisherData.publisher_name
-                },
-                publisherData.file
-            );
-
-            setPublisher(newPublisher);
-            setShowEditPublisherModal(false);
-        }
-        catch(error){
-            console.error("Error editing publisher:", error);
-        }
-        finally{
-            setIsEditingPublisher(false);
-        }
-    }
-
-    function handleEditPublisherModalOpen(){
-        setShowEditPublisherModal(true);
-    }
-
-    function handleEditPublisherModalClose(){
-        if (!isEditingPublisher)
-            setShowEditPublisherModal(false);
     }
 
     useEffect(() => {
@@ -89,10 +55,21 @@ export function PublisherPage() {
             {
                 user && (
                     <Button
-                        onClick={handleEditPublisherModalOpen}
+                        onClick={() => setShowEditPublisherModal(true)}
                         variant="primary"
                     >
                         Edit Publisher
+                    </Button>
+                )
+            }
+            {
+                user && (
+                    <Button 
+                        className="ms-2"
+                        variant="danger"
+                        onClick={() => setShowDeletePublisherModal(true)}
+                    >
+                        Delete Publisher
                     </Button>
                 )
             }
@@ -118,10 +95,20 @@ export function PublisherPage() {
                 publisher && user && (
                     <PublisherEditModal 
                         initialPublisher={publisher}
-                        onClose={handleEditPublisherModalClose}
-                        onEdit={editPublisher}
-                        isLoading={isEditingPublisher}
+                        onClose={() => setShowEditPublisherModal(false)}
+                        onPublisherEdited={setPublisher}
                         show={showEditPublisherModal}
+                    />
+                )
+            }
+
+            {
+                publisher && (
+                    <PublisherDeleteModal 
+                        publisher={publisher}
+                        onPublisherDeleted={() => navigate("/books")}
+                        onClose={() => setShowDeletePublisherModal(false)}
+                        show={showDeletePublisherModal && user !== null}
                     />
                 )
             }
@@ -129,3 +116,5 @@ export function PublisherPage() {
         </>
     )
 }
+
+export default PublisherPage;

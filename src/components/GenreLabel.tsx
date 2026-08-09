@@ -1,10 +1,12 @@
 import { Badge } from "react-bootstrap";
 import { Genre } from "../API/models/Genre";
+import { Book } from "../API/models/Book";
+import { JSX } from "react";
 
 interface GenreLabelProps {
-    genre_id: Genre["genre_id"];
-    genre_name: Genre["genre_name"];
-    onDelete?: (genre_id: Genre["genre_id"]) => void;
+    genre: Genre | Book["genres"][number];
+    onClick?: (genre: Genre | Book["genres"][number]) => void;
+    children?: JSX.Element;
 }
 
 export default function GenreLabel(props: GenreLabelProps) {
@@ -12,19 +14,10 @@ export default function GenreLabel(props: GenreLabelProps) {
         <Badge 
             bg="secondary"
             className="d-inline-flex align-items-center py-2"
+            onClick={() => props.onClick?.(props.genre)}
         >
-            {props.genre_name}
-            {
-                props.onDelete && (
-                    <span 
-                        className="ms-2"
-                        style={{ cursor: "pointer" }}
-                        onClick={() => props.onDelete!(props.genre_id)}
-                    >
-                        &times;
-                    </span>
-                )
-            }
+            {props.genre.genre_name}
+            {props.children}
         </Badge>
     )
 }

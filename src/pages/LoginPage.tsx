@@ -2,7 +2,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import { Card, Form, Button, Alert, Spinner } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
-import { AuthenticationService } from "../API/services/AuthenticationService";
+import * as AuthenticationService from "../API/services/AuthenticationService";
 import { useAppDispatch } from "../hooks/customRedux";
 import { assignUser } from "../store/User";
 
@@ -47,9 +47,11 @@ function LoginPage() {
       dispatch(assignUser(userData));
 
       navigate("/books");
-    } catch (err) {
+    } 
+    catch (err) {
       setError("Invalid email or password");
-    } finally {
+    } 
+    finally {
       setIsLoading(false);
     }
   }

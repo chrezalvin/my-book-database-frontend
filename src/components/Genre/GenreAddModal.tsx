@@ -1,39 +1,39 @@
 import { useEffect, useState } from "react";
-import { AuthorCreate, createAuthorSchema } from "../../API/schemas/AuthorSchema";
+import { GenreCreate, createGenreSchema } from "../../API/schemas/GenreSchema";
 import { Button, Form, Modal } from "react-bootstrap";
-import { Author } from "../../API/models/Author";
-import * as AuthorService from "../../API/services/AuthorService";
+import { Genre } from "../../API/models/Genre";
+import * as GenreService from "../../API/services/GenreService";
 import { ZodError } from "zod";
 
-export interface AuthorAddModalProps{
-  initialAuthor?: AuthorCreate;
+export interface GenreAddModalProps{
+  initialGenre?: GenreCreate;
   onClose: () => void;
-  onAuthorAdded: (newAuthor: Author) => void;
+  onGenreAdded: (newGenre: Genre) => void;
 
   show?: boolean;
 }
 
-export default function AuthorAddModal(props: AuthorAddModalProps){
-    const [authorName, setAuthorName] = useState<AuthorCreate["author_name"]>("");
-    const [authorDescription, setAuthorDescription] = useState<AuthorCreate["author_description"]>("");
-    const [authorImg, setAuthorImg] = useState<File | null>(null);
+export default function GenreAddModal(props: GenreAddModalProps){
+    const [genreName, setGenreName] = useState<GenreCreate["genre_name"]>("");
+    const [genreDescription, setGenreDescription] = useState<GenreCreate["genre_description"]>("");
+    const [genreImg, setGenreImg] = useState<File | null>(null);
 
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [apiError, setApiError] = useState<string | null>(null);
     const [zodError, setZodError] = useState<ZodError | null>();
 
-    async function addAuthor(){
+    async function addGenre(){
       try{
         setIsLoading(true);
 
-        const parsed = createAuthorSchema.parse({ 
-          author_name: authorName, 
-          author_description: authorDescription 
+        const parsed = createGenreSchema.parse({ 
+          genre_name: genreName, 
+          genre_description: genreDescription 
         });
         
-        const newAuthor = await AuthorService.addNewAuthor(parsed, authorImg ?? undefined);
+        const newGenre = await GenreService.addNewGenre(parsed, genreImg ?? undefined);
 
-        props.onAuthorAdded(newAuthor);
+        props.onGenreAdded(newGenre);
         props.onClose();
       }
       catch(error){
@@ -42,7 +42,7 @@ export default function AuthorAddModal(props: AuthorAddModalProps){
         else if(error instanceof Error)
           setApiError(error.message);
         else
-          console.error("Error adding author:", error);
+          console.error("Error adding genre:", error);
       }
       finally{
         setIsLoading(false);
@@ -56,8 +56,8 @@ export default function AuthorAddModal(props: AuthorAddModalProps){
 
     useEffect(() => {
       if (props.show) {
-        setAuthorName(props.initialAuthor?.author_name ?? "");
-        setAuthorDescription(props.initialAuthor?.author_description ?? "");
+        setGenreName(props.initialGenre?.genre_name ?? "");
+        setGenreDescription(props.initialGenre?.genre_description ?? "");
       }
     }, [props.show]);
 
@@ -67,38 +67,38 @@ export default function AuthorAddModal(props: AuthorAddModalProps){
         onHide={handleClose}
       >
         <Modal.Header closeButton>
-          <Modal.Title>Add A New Author</Modal.Title>
+          <Modal.Title>Add A New Genre</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <Form.Group className="mb-3" controlId="formNewAuthorName">
-            <Form.Label>Author Name</Form.Label>
+          <Form.Group className="mb-3" controlId="formNewGenreName">
+            <Form.Label>Genre Name</Form.Label>
             <Form.Control
-              name="newAuthorName"
-              value={authorName}
+              name="newGenreName"
+              value={genreName}
               disabled={isLoading}
-              onChange={(e) => setAuthorName(e.target.value)}
+              onChange={(e) => setGenreName(e.target.value)}
             />
           </Form.Group>
-          <Form.Group className="mb-3" controlId="formNewAuthorDescription">
-            <Form.Label>Author Description</Form.Label>
+          <Form.Group className="mb-3" controlId="formNewGenreDescription">
+            <Form.Label>Genre Description</Form.Label>
             <Form.Control
               as="textarea"
               rows={4}
-              name="newAuthorDescription"
-              value={authorDescription ?? ""}
+              name="newGenreDescription"
+              value={genreDescription ?? ""}
               disabled={isLoading}
-              onChange={(e) => setAuthorDescription(e.target.value)}
+              onChange={(e) => setGenreDescription(e.target.value)}
             />
           </Form.Group>
 
           <Form.Group className="mb-3">
             <Form.Label>Cover Image</Form.Label>
 
-            {authorImg && (
+            {genreImg && (
               <div className="mb-2">
                 <img
-                  src={URL.createObjectURL(authorImg)}
-                  alt="Author Cover Preview"
+                  src={URL.createObjectURL(genreImg)}
+                  alt="Genre Cover Preview"
                   style={{
                     height: "120px",
                     objectFit: "cover",
@@ -113,9 +113,9 @@ export default function AuthorAddModal(props: AuthorAddModalProps){
               disabled={isLoading}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                 if (e.target.files && e.target.files.length > 0) {
-                    setAuthorImg(e.target.files[0]);
+                    setGenreImg(e.target.files[0]);
                 } else {
-                    setAuthorImg(null);
+                    setGenreImg(null);
                 }
                 }}
             />
@@ -131,10 +131,10 @@ export default function AuthorAddModal(props: AuthorAddModalProps){
           </Button>
           <Button 
             variant="primary" 
-            onClick={addAuthor}
+            onClick={addGenre}
             disabled={isLoading}
           >
-            Add Author
+            Add Genre
           </Button>
         </Modal.Footer>
       </Modal>

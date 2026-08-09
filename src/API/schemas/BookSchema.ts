@@ -6,8 +6,8 @@ export const createBookSchema = bookModel.omit({
     book_id: true,
     created_at: true,
     cover_img: true,
-    author_name: true,
-    publisher_name: true,
+    author: true,
+    publisher: true
 }).extend({
     title: bookModel.shape.title.trim().min(1, { message: "Title is required" }),
     author_id: bookModel.shape.author_id,

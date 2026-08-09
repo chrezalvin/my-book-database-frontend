@@ -2,11 +2,11 @@ import { Container } from "react-bootstrap";
 import Header from "../../components/Header";
 import { Outlet, useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../hooks/customRedux";
-import { AuthenticationService } from "../../API/services/AuthenticationService";
+import * as AuthenticationService from "../../API/services/AuthenticationService";
 import { assignUser, resetUser } from "../../store/User";
 import { useEffect } from "react";
 
-function BooksLayout() {
+export function BooksLayout() {
     const user = useAppSelector((state) => state.user);
     const navigate = useNavigate();
     const dispatch = useAppDispatch();

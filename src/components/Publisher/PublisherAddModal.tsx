@@ -1,37 +1,48 @@
 import { useEffect, useState } from "react";
 import { PublisherCreate, createPublisherSchema } from "../../API/schemas/PublisherSchema";
 import { Button, Form, Modal } from "react-bootstrap";
-
-export interface PublisherCreateAdd extends PublisherCreate{
-    file?: File;
-}
+import { Publisher } from "../../API/models/Publisher";
+import * as PublisherService from "../../API/services/PublisherService";
 
 export interface PublisherAddModalProps{
-    initialPublisher?: PublisherCreate;
-    onAdd: (publisher: PublisherCreateAdd) => void;
-    onClose: () => void;
+  initialPublisher?: PublisherCreate;
+  onPublisherAdded: (publisher: Publisher) => void;
+  onClose: () => void;
 
-    show?: boolean;
-    isLoading?: boolean;
+  show?: boolean;
 }
 
 export default function PublisherAddModal(props: PublisherAddModalProps){
     const [publisherName, setPublisherName] = useState<PublisherCreate["publisher_name"]>("");
     const [publisherDescription, setPublisherDescription] = useState<PublisherCreate["publisher_description"]>("");
     const [publisherImg, setPublisherImg] = useState<File | null>(null);
-
-    function addPublisher(){
-        try{
-            const parsed = createPublisherSchema.parse({ 
-                publisher_name: publisherName, 
-                publisher_description: publisherDescription 
-            });
     
-            props.onAdd({...parsed, file: publisherImg ?? undefined});
-        }
-        catch(error){
-            console.error("Error adding publisher:", error);
-        }
+    const [isLoading, setIsLoading] = useState<boolean>(false);
+
+    async function addPublisher(){
+      try{
+        setIsLoading(true);
+
+        const parsed = createPublisherSchema.parse({ 
+          publisher_name: publisherName, 
+          publisher_description: publisherDescription 
+        });
+
+        const newPublisher = await PublisherService.addNewPublisher(parsed, publisherImg ?? undefined);
+
+        props.onPublisherAdded(newPublisher);
+      }
+      catch(error){
+        console.error("Error adding publisher:", error);
+      }
+      finally{
+        setIsLoading(false);
+      }
+    }
+
+    function handleClose(){
+      if(!isLoading)
+        props.onClose();
     }
 
     useEffect(() => {
@@ -44,7 +55,7 @@ export default function PublisherAddModal(props: PublisherAddModalProps){
     return (
       <Modal 
         show={props.show ?? false} 
-        onHide={props.onClose}
+        onHide={handleClose}
       >
         <Modal.Header closeButton>
           <Modal.Title>Add A New Publisher</Modal.Title>
@@ -55,6 +66,7 @@ export default function PublisherAddModal(props: PublisherAddModalProps){
             <Form.Control
               name="newPublisherName"
               value={publisherName}
+              disabled={isLoading}
               onChange={(e) => setPublisherName(e.target.value)}
             />
           </Form.Group>
@@ -65,6 +77,7 @@ export default function PublisherAddModal(props: PublisherAddModalProps){
               rows={4}
               name="newPublisherDescription"
               value={publisherDescription ?? ""}
+              disabled={isLoading}
               onChange={(e) => setPublisherDescription(e.target.value)}
             />
           </Form.Group>
@@ -88,6 +101,7 @@ export default function PublisherAddModal(props: PublisherAddModalProps){
             <Form.Control
               type="file"
               accept="image/*"
+              disabled={isLoading}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                 if (e.target.files && e.target.files.length > 0) {
                     setPublisherImg(e.target.files[0]);
@@ -101,15 +115,15 @@ export default function PublisherAddModal(props: PublisherAddModalProps){
         <Modal.Footer>
           <Button 
             variant="secondary" 
-            onClick={props.onClose}
-            disabled={props.isLoading}
+            onClick={handleClose}
+            disabled={isLoading}
           >
             Close
           </Button>
           <Button 
             variant="primary" 
             onClick={addPublisher}
-            disabled={props.isLoading}
+            disabled={isLoading}
           >
             Add Publisher
           </Button>

@@ -1,22 +1,24 @@
-import { Button, Card, Form, InputGroup, ListGroup, Modal } from "react-bootstrap";
-import { BookService } from "../../API/services/BookService";
-import { SubmitEvent, useEffect, useState } from "react";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { CreateBook, createBookSchema, updateBookSchema } from "../../API/schemas/BookSchema";
+import { Button, Card, Form } from "react-bootstrap";
+import * as BookService from "../../API/services/BookService";
+import { useEffect, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { CreateBook, createBookSchema } from "../../API/schemas/BookSchema";
 import { Genre } from "../../API/models/Genre";
 import GenreLabel from "../../components/GenreLabel";
-import GenreSearch from "../../components/GenreSearch";
-import SearchHelper from "../../components/SearchHelper";
-import { GenreService } from "../../API/services/GenreService";
+import * as GenreService from "../../API/services/GenreService";
 import { ZodError } from "zod";
 import { Author } from "../../API/models/Author";
 import { Publisher } from "../../API/models/Publisher";
-import { AuthorService } from "../../API/services/AuthorService";
-import { PublisherService } from "../../API/services/PublisherService";
-import AuthorAddModal, { AuthorCreateAdd } from "../../components/Author/AuthorAddModal";
-import PublisherAddModal, { PublisherCreateAdd } from "../../components/Publisher/PublisherAddModal";
+import * as AuthorService from "../../API/services/AuthorService";
+import * as PublisherService from "../../API/services/PublisherService";
+import AuthorAddModal from "../../components/Author/AuthorAddModal";
+import PublisherAddModal from "../../components/Publisher/PublisherAddModal";
+import { ImageWithTitle } from "../../components/ImageWithTitle";
+import defaultAvatar from "../../placeholders/default-avatar.jpg";
+import { SearchBar } from "../../components/SearchBar";
+import GenreAddModal from "../../components/Genre/GenreAddModal";
 
-function BooksCreatePage() {
+export function BooksCreatePage() {
     const navigate = useNavigate();
     
     const [searchParams] = useSearchParams();
@@ -27,31 +29,22 @@ function BooksCreatePage() {
 
     // author
     const [author, setAuthor] =  useState<Author | null>(null);
-    const [authorKeyword, setAuthorKeyword] = useState<string>("");
-    const [authorSearchResults, setAuthorSearchResults] = useState<Author[]>([]);
-    const [isSearchingAuthor, setIsSearchingAuthor] = useState(false);
-    
-    const [showAddAuthorModal, setShowAddAuthorModal] = useState(false);
-    const [isAddingAuthor, setIsAddingAuthor] = useState(false);
+    const [showAddAuthorModal, setShowAddAuthorModal] = useState<boolean>(false);
     
     // publisher
     const [publisher, setPublisher] =  useState<Publisher | null>(null);
-    const [publisherKeyword, setPublisherKeyword] = useState<string>("");
-    const [publisherSearchResults, setPublisherSearchResults] = useState<Publisher[]>([]);
-    const [isSearchingPublisher, setIsSearchingPublisher] = useState(false);
+    const [showAddPublisherModal, setShowAddPublisherModal] = useState<boolean>(false);
     
-    const [showAddPublisherModal, setShowAddPublisherModal] = useState(false);
-    const [isAddingPublisher, setIsAddingPublisher] = useState(false);
-    
+    // genre
+    const [genreList, setGenreList] =  useState<Genre[]>([]);
+    const [showAddGenreModal, setShowAddGenreModal] = useState<boolean>(false);
+
     const [publicationYear, setPublicationYear] =  useState<number | null>(null);
     const [summary, setSummary] =  useState("");
     const [coverFile, setCoverFile] =  useState<File | null>(null);
-    const [genreList, setGenreList] =  useState<Genre[]>([]);
     const [language, setLanguage] =  useState("en");
     const [edition, setEdition] =  useState<string | null>(null);
     const [isbn, setIsbn] =  useState<string | null>(null);
-
-    const [isAddingGenre, setIsAddingGenre] = useState(false);
 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -83,6 +76,7 @@ function BooksCreatePage() {
 
         const newBook = await BookService.addNewBook(parsed, coverFile ?? undefined);
 
+        // go to appropriate page after submitting
         if(publisher_id)
           navigate(`/publishers/${publisher_id}`);
         else if(author_id)
@@ -114,123 +108,6 @@ function BooksCreatePage() {
       }
     }
 
-    async function searchGenres(keyword: string): Promise<Genre[]> {
-      try{
-        const exclude_genre_ids = genreList.map(g => g.genre_id);
-        const genres = GenreService.getGenres({keyword, exclude_genre_ids});
-        return genres;
-      }
-      catch(err){
-        console.error("Error searching genres:", err);
-        return [];
-      }
-    }
-
-    function handleAuthorModalOpen(){
-      setShowAddAuthorModal(true);
-    }
-
-    function handleAuthorModalClose(){
-      if(!isAddingAuthor){
-        setShowAddAuthorModal(false);
-      }
-    }
-
-    async function handleAddAuthor(authorData: AuthorCreateAdd): Promise<void> {
-      try{
-        setIsAddingAuthor(true);
-
-        const newAuthor = await AuthorService.addNewAuthor({
-          author_name: authorData.author_name,
-          author_description: authorData.author_description,
-        }, authorData.file ?? undefined);
-
-        setAuthor(newAuthor);
-        setShowAddAuthorModal(false);
-      }
-      catch(err){
-        console.error("Error adding new author:", err);
-      }
-      finally{
-        setIsAddingAuthor(false);
-      }
-    }
-
-    function handleAuthorInputChange(e: React.ChangeEvent<HTMLInputElement>) {
-      const keyword = e.target.value;
-      setAuthorKeyword(keyword);
-      setAuthor(null); // Clear the selected author when typing
-
-      if(keyword.length === 0){
-        setAuthorSearchResults([]);
-      }
-    }
-
-    async function searchAuthors(keyword: string): Promise<void> {
-      try{
-        setIsSearchingAuthor(true);
-        const authors = await AuthorService.searchAuthors(keyword);
-        
-        setAuthorSearchResults(authors);
-      }
-      catch(err){
-        console.error("Error searching authors:", err);
-      }
-      finally{
-        setIsSearchingAuthor(false);
-      }
-    }
-
-    function handlePublisherModalOpen(){
-      setShowAddPublisherModal(true);
-    }
-
-    function handlePublisherModalClose(){
-      if(!isAddingPublisher){
-        setShowAddPublisherModal(false);
-      }
-    }
-
-    async function handleAddPublisher(publisherData: PublisherCreateAdd): Promise<void> {
-      try{
-        const newPublisher = await PublisherService.addNewPublisher({
-          publisher_name: publisherData.publisher_name,
-          publisher_description: publisherData.publisher_description,
-        }, publisherData.file ?? undefined);
-
-        setPublisher(newPublisher);
-        setShowAddPublisherModal(false);
-      }
-      catch(err){
-        console.error("Error adding new publisher:", err);
-      }
-    }
-
-    function handlePublisherInputChange(e: React.ChangeEvent<HTMLInputElement>) {
-      const keyword = e.target.value;
-      setPublisherKeyword(keyword);
-      setPublisher(null); // Clear the selected publisher when typing
-
-      if(keyword.length === 0){
-        setPublisherSearchResults([]);
-      }
-    }
-
-    async function searchPublishers(keyword: string): Promise<void> {
-      try{
-        setIsSearchingPublisher(true);
-        const publishers = await PublisherService.getPublishers(keyword);
-
-        setPublisherSearchResults(publishers);
-      }
-      catch(err){
-        console.error("Error searching publishers:", err);
-      }
-      finally{
-        setIsSearchingPublisher(false);
-      }
-    }
-
     async function handleInitialAuthorAndPublisher(){
       try{
         if(author_id){
@@ -248,28 +125,6 @@ function BooksCreatePage() {
       }
     }
 
-    // debouncing for author search
-    useEffect(() => {
-      const delayDebounceFn = setTimeout(() => {
-        if(authorKeyword.length > 0){
-          searchAuthors(authorKeyword);
-        }
-      }, 500);
-
-      return () => clearTimeout(delayDebounceFn);
-    }, [authorKeyword]);
-
-    // debouncing for publisher search
-    useEffect(() => {
-      const delayDebounceFn = setTimeout(() => {
-        if(publisherKeyword.length > 0){
-          searchPublishers(publisherKeyword);
-        }
-      }, 500);
-
-      return () => clearTimeout(delayDebounceFn);
-    }, [publisherKeyword]);
-
     useEffect(() => {
       handleInitialAuthorAndPublisher();
     }, []);
@@ -277,60 +132,31 @@ function BooksCreatePage() {
     const genreListUI = genreList.map((g) => (
       <GenreLabel 
         key={g.genre_id} 
-        genre_name={g.genre_name}
-        genre_id={g.genre_id}
-        onDelete={(genre_id) => {
-          setGenreList(genreList.filter((g) => g.genre_id !== genre_id));
+        genre={g}
+        onClick={(genreToDelete) => {
+          setGenreList(genreList.filter((g) => g.genre_id !== genreToDelete.genre_id));
         }}
       />
-    ))
-
-    const authorSearchResultsUI = authorSearchResults.map((a) => (
-      <ListGroup.Item 
-        key={a.author_id}
-        action
-        onClick={() => {
-          setAuthor(a);
-          setAuthorSearchResults([]);
-        }}
-      >
-        {a.author_name}
-      </ListGroup.Item>
-    ))
-
-    const publisherSearchResultsUI = publisherSearchResults.map((p) => (
-      <ListGroup.Item 
-        key={p.publisher_id}
-        action
-        onClick={() => {
-          setPublisher(p);
-          setPublisherSearchResults([]);
-        }}
-      >
-        {p.publisher_name}
-      </ListGroup.Item>
     ))
 
     return (
     <Card className="shadow-sm">
       <AuthorAddModal 
-        onAdd={handleAddAuthor}
-        onClose={handleAuthorModalClose}
-        initialAuthor={{
-          author_name: authorKeyword,
-        }}
+        onAuthorAdded={setAuthor}
+        onClose={() => setShowAddAuthorModal(false)}
         show={showAddAuthorModal}
-        isLoading={isAddingAuthor}
       />
 
       <PublisherAddModal 
-        onAdd={handleAddPublisher}
-        onClose={handlePublisherModalClose}
-        initialPublisher={{
-          publisher_name: publisherKeyword,
-        }}
+        onPublisherAdded={setPublisher}
+        onClose={() => setShowAddPublisherModal(false)}
         show={showAddPublisherModal}
-        isLoading={isAddingPublisher}
+      />
+
+      <GenreAddModal 
+        onGenreAdded={(newGenre) => setGenreList([...genreList, newGenre])}
+        onClose={() => setShowAddGenreModal(false)}
+        show={showAddGenreModal}
       />
 
       <Card.Body>
@@ -356,28 +182,27 @@ function BooksCreatePage() {
 
           <Form.Group className="mb-3">
             <Form.Label>Author</Form.Label>
-            <InputGroup>
-              <Form.Control
-                name="author"
-                value={author?.author_name ?? authorKeyword}
-                onChange={handleAuthorInputChange}
-                isInvalid={isFormValidated && !!errorMap["author"]}
-              />
-              {
-                !author && authorKeyword != "" && (
-                  <Button 
-                    variant="primary" 
-                    id="add-author-button"
-                    onClick={handleAuthorModalOpen}
-                  >
-                    Add New Author
-                  </Button>
-                )
-              }
-            </InputGroup>
-            <ListGroup>
-              {authorSearchResultsUI}
-            </ListGroup>
+
+            {
+              author && (
+                <ImageWithTitle 
+                  src={author.author_img ?? defaultAvatar}
+                  title={author.author_name}
+                />
+              )
+            }
+
+            <SearchBar 
+              search={AuthorService.searchAuthors}
+              placeholder="Search Author"
+              onElementClick={setAuthor}
+              element={(author) => (<ImageWithTitle src={author.author_img ?? defaultAvatar} title={author.author_name} />)}
+            >
+              <Button
+                onClick={() => setShowAddAuthorModal(true)}
+              >Add New Author</Button>
+            </SearchBar>
+
             <Form.Control.Feedback className="text-danger" type="invalid">
               {errorMap["author"]}
             </Form.Control.Feedback>
@@ -385,28 +210,27 @@ function BooksCreatePage() {
 
           <Form.Group className="mb-3">
             <Form.Label>Publisher</Form.Label>
-            <InputGroup>
-              <Form.Control
-                name="publisher"
-                value={publisher?.publisher_name ?? publisherKeyword}
-                onChange={handlePublisherInputChange}
-                isInvalid={isFormValidated && !!errorMap["publisher"]}
-              />
-              {
-                !publisher && publisherKeyword != "" && (
-                  <Button 
-                    variant="primary"
-                    id="add-publisher-button"
-                    onClick={handlePublisherModalOpen}
-                  >
-                    Add New Publisher
-                  </Button>
-                )
-              }
-            </InputGroup>
-            <ListGroup>
-              {publisherSearchResultsUI}
-            </ListGroup>
+
+            {
+              publisher && (
+                <ImageWithTitle 
+                  src={publisher.publisher_img ?? defaultAvatar}
+                  title={publisher.publisher_name}
+                />
+              )
+            }
+
+            <SearchBar 
+              search={PublisherService.getPublishers}
+              placeholder="Search Publisher"
+              onElementClick={setPublisher}
+              element={(publisher) => (<ImageWithTitle src={publisher.publisher_img ?? defaultAvatar} title={publisher.publisher_name} />)}
+            >
+              <Button
+                onClick={() => setShowAddPublisherModal(true)}
+              >Add New Publisher</Button>
+            </SearchBar>
+
             <Form.Control.Feedback className="text-danger" type="invalid">
               {errorMap["publisher"]}
             </Form.Control.Feedback>
@@ -431,43 +255,20 @@ function BooksCreatePage() {
 
             <div className="mb-2 d-flex flex-wrap gap-1">
               {genreListUI}
-              <Button
-                size="sm"
-                variant="outline-primary"
-                onClick={() => setIsAddingGenre(!isAddingGenre)}
-              >
-                +
-              </Button>
             </div>
 
-            <SearchHelper 
-              show={isAddingGenre}
-              placeholder="Search genres..."
-              searchByKeyword={searchGenres}
-              convertToListItem={(g) => {
-                return {
-                  item: g,
-                  value: g.genre_name,
-                  key: g.genre_id,
-                }
-              }}
-              
-              onHelperSelect={(g) => {
-                setGenreList([...genreList, g]);
-                setIsAddingGenre(false);
-              }}
-
-              buttonSetting={{
-                canAddFromKeyword: (keyword) => {
-                  // check if keyword is not empty and not already in genreList
-                  return keyword.length > 0 && !genreList.some(g => g.genre_name.toLowerCase() === keyword.toLowerCase());
-                },
-                buttonText: "Add Genre",
-                onButtonClick: async (keyword) => {
-                  return await GenreService.addNewGenre({genre_name: keyword});
-                },
-              }}
-            />
+            <SearchBar<Genre>
+              search={(keyword) => GenreService.getGenres({keyword, exclude_genre_ids: genreList.map(g => g.genre_id)})}
+              placeholder="Search Genre"
+              onElementClick={(g) => {setGenreList([...genreList, g])}}
+              element={(genre) => (<ImageWithTitle src={genre.genre_img ?? defaultAvatar} title={genre.genre_name} />)}
+            >
+              <Button
+                onClick={() => setShowAddGenreModal(true)}
+              >
+                Add New Genre
+              </Button>
+            </SearchBar>
           </Form.Group>
 
           <Form.Group className="mb-3">
