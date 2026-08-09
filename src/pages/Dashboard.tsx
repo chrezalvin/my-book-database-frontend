@@ -191,21 +191,19 @@ function Dashboard(props: Dashboard) {
       />
 
       <Row xs={1} sm={2} md={3} lg={3} className="g-4">
-        {books.map((book) => {
-          const author_id = book.author_id;
-
-          return (<Col key={book.book_id}>
+        {books.map((book) => (
+          <Col key={book.book_id}>
             <BookCard
               book={book}
               onView={setSelectedBook}
               onDelete={allowedToEdit ? setSelectedBookToDelete : undefined}
               onEdit={allowedToEdit ? gotoEditPage : undefined}
-              onAuthorClick={props.additionalParams?.author_id ? undefined : gotoAuthorPage}
-              onPublisherClick={props.additionalParams?.publisher_id ? undefined : gotoPublisherPage}
-              onGenreClick={props.additionalParams?.genre_id ? undefined : gotoGenrePage}
+              onAuthorClick={gotoAuthorPage}
+              onPublisherClick={gotoPublisherPage}
+              onGenreClick={gotoGenrePage}
             />
           </Col>)
-        })}
+        )}
       </Row>
 
       {error && <Alert variant="danger">{error}</Alert>}
