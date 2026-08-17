@@ -47,7 +47,7 @@ export function GenreBookPage() {
                 description={genre?.genre_description ?? "No description"}
                 imageUrl={genre?.genre_img ?? undefined}
                 defaultImageUrl={defaultAvatar}
-                isLoading={genre !== null}
+                isLoading={genre === null}
             />
             {
                 user && (

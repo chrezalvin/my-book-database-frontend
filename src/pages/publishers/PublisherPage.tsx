@@ -47,7 +47,7 @@ export function PublisherPage() {
                 description={publisher?.publisher_description ?? "No description"}
                 imageUrl={publisher?.publisher_img ?? undefined}
                 defaultImageUrl={defaultImage}
-                isLoading={publisher !== null}
+                isLoading={publisher === null}
             />
 
             {
