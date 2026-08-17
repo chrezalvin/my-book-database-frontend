@@ -1,6 +1,6 @@
 import { axiosInstance } from "../axiosConfig";
 import { Book, bookModel } from "../models/Book";
-import { CreateBook, UpdateBook } from "../schemas/BookSchema";
+import { BookCreate, BookUpdate } from "../schemas/BookSchema";
 
 export async function getBooksByPage(
     params: {
@@ -37,11 +37,15 @@ export async function getOneBook(book_id: Book["book_id"]): Promise<Book> {
     return parsed;
 }
 
-export async function addNewBook(book: CreateBook, cover_img?: File): Promise<Book>{
+export async function addNewBook(bookCreate: BookCreate): Promise<Book>{
     const formData = new FormData();
-    formData.append("book", JSON.stringify(book));
-    if(cover_img)
-        formData.append("image", cover_img);
+    formData.append("book", JSON.stringify(bookCreate.book));
+
+    if(bookCreate.genre_ids)
+        formData.append("genre_ids", bookCreate.genre_ids.toString());
+
+    if(bookCreate.image)
+        formData.append("image", bookCreate.image);
 
     const res = await axiosInstance.post(`/books`, formData, {
         headers: {
@@ -54,11 +58,15 @@ export async function addNewBook(book: CreateBook, cover_img?: File): Promise<Bo
     return parsed;
 }
 
-export async function editBook(book_id: Book["book_id"], bookPartial: UpdateBook, cover_img?: File): Promise<Book>{
+export async function editBook(book_id: Book["book_id"], bookUpdate: BookUpdate): Promise<Book>{
     const formData = new FormData();
-    formData.append("book", JSON.stringify(bookPartial));
-    if(cover_img)
-        formData.append("image", cover_img);
+    formData.append("book", JSON.stringify(bookUpdate.book));
+
+    if(bookUpdate.genre_ids)
+        formData.append("genre_ids", bookUpdate.genre_ids.toString());
+
+    if(bookUpdate.image)
+        formData.append("image", bookUpdate.image);
     
     const res = await axiosInstance.patch(`/books/${book_id}`, formData, {
         headers: {
@@ -71,14 +79,8 @@ export async function editBook(book_id: Book["book_id"], bookPartial: UpdateBook
     return parsed;
 }
 
-export async function deleteBook(book_id: Book["book_id"]): Promise<boolean>{
-    const res = await axiosInstance.delete(`/books/${book_id}`);
+export async function deleteBook(book_id: Book["book_id"]): Promise<true>{
+    await axiosInstance.delete(`/books/${book_id}`);
     
-    if(!("success" in res.data))
-        throw new Error(`Response data does not contain 'success' property: ${JSON.stringify(res.data)}`);
-
-    if(typeof res.data.success !== "boolean")
-        throw new Error(`'success' property is not a boolean: ${JSON.stringify(res.data.success)}`);
-
-    return res.data.success;
+    return true;
 }

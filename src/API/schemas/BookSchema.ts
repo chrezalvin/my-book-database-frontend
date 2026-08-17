@@ -1,7 +1,8 @@
 import z from "zod";
 import { bookModel } from "../models/Book";
+import { genreModel } from "../models/Genre";
 
-export const createBookSchema = bookModel.omit({
+const createBookBase = bookModel.omit({
     genres: true,
     book_id: true,
     created_at: true,
@@ -16,10 +17,18 @@ export const createBookSchema = bookModel.omit({
         .min(1000, { message: "Publication year must be a valid year" })
         .max(new Date().getFullYear(), { message: "Publication year cannot be in the future" }),
 
-    genre_ids: z.array(z.uuid()).optional(),
+    book_aliases: bookModel.shape.book_aliases.optional(),
 });
 
-export const updateBookSchema = createBookSchema.partial()
+export const createBookSchema = z.object({
+    book: createBookBase,
+    genre_ids: z.array(genreModel.shape.genre_id).optional(),
+    image: z.file().optional()
+});
 
-export type CreateBook = z.infer<typeof createBookSchema>;
-export type UpdateBook = z.infer<typeof updateBookSchema>;
+export const updateBookSchema = createBookSchema.extend({
+    book: createBookSchema.shape.book.partial(),
+}).partial();
+
+export type BookCreate = z.infer<typeof createBookSchema>;
+export type BookUpdate = z.infer<typeof updateBookSchema>;

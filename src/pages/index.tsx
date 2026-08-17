@@ -1,15 +1,30 @@
 import { createBrowserRouter } from "react-router-dom";
 
-import BooksPage from "./books/BooksPage";
-import BooksCreatePage from "./books/BooksCreatePage";
 import RedirectToBooks from "./RedirectToBooks";
 import LoginPage from "./LoginPage";
-import BooksLayout from "./books/BooksLayout";
-import BooksEditPage from "./books/BooksEditPage";
-import AuthorPage from "./books/AuthorPage";
-import PublisherPage from "./books/PublisherPage";
 import Testing from "./Testing";
-import GenrePage from "./books/GenrePage";
+
+import {
+    BooksPage,
+    BooksCreatePage,
+    BooksEditPage,
+    BooksLayout
+} from "./books";
+
+import {
+    GenreBookPage,
+    GenresPage
+} from "./genres";
+
+import {
+    AuthorPage,
+    AuthorsPage
+} from "./authors";
+
+import {
+    PublisherPage,
+    PublishersPage
+} from "./publishers";
 
 export const router = createBrowserRouter([
     {
@@ -29,32 +44,64 @@ export const router = createBrowserRouter([
         children: [
             {
                 path: "/books",
-                element: <BooksPage />
+                children: [
+                    {
+                        path: "",
+                        element: <BooksPage />
+                    },
+                    {
+                        path: "page/:page",
+                        element: <BooksPage />
+                    },
+                    {
+                        path: "create",
+                        element: <BooksCreatePage />
+                    },
+                    {
+                        path: "edit/:book_id",
+                        element: <BooksEditPage />
+                    },
+                ]
             },
             {
-                path: "/books/page/:page",
-                element: <BooksPage />
+                path: "/authors",
+                children: [
+                    {
+                        path: "",
+                        element: <AuthorsPage />
+                    },
+                    {
+                        path: ":author_id",
+                        element: <AuthorPage />
+                    },
+                ]
             },
             {
-                path: "/books/create",
-                element: <BooksCreatePage />
+                path: "/publishers",
+                children: [
+                    {
+                        path: "",
+                        element: <PublishersPage />
+                    },
+                    {
+                        path: ":publisher_id",
+                        element: <PublisherPage />
+                    },
+                ]
             },
             {
-                path: "/books/edit/:book_id",
-                element: <BooksEditPage />
+                path: "/genres",
+                children: [
+                    {
+                        path: "",
+                        element: <GenresPage />
+                    },
+                    {
+                        path: ":genre_id",
+                        element: <GenreBookPage />
+                    }
+                ]
             },
-            {
-                path: "/authors/:author_id",
-                element: <AuthorPage />
-            },
-            {
-                path: "/publishers/:publisher_id",
-                element: <PublisherPage />
-            },
-            {
-                path: "/genres/:genre_id",
-                element: <GenrePage />
-            }
         ]
     }
 ]);

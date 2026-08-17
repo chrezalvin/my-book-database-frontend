@@ -2,12 +2,8 @@ import { axiosInstance } from "../axiosConfig";
 import { Publisher, publisherModel } from "../models/Publisher";
 import { PublisherCreate, PublisherUpdate } from "../schemas/PublisherSchema";
 
-export async function getPublishers(name?: string): Promise<Publisher[]> {
-    const res = await axiosInstance.get(`/publishers`, {
-        params: {
-            name: name || "",
-        }
-    });
+export async function getPublishers(params: {name?: string, page?: number}): Promise<Publisher[]> {
+    const res = await axiosInstance.get(`/publishers`, {params});
 
     const data = res.data as unknown;
 
@@ -32,12 +28,12 @@ export async function getPublisherById(publisher_id: Publisher["publisher_id"]):
     return parsed;
 }
 
-export async function addNewPublisher(publisher: PublisherCreate, publisher_img?: File): Promise<Publisher> {
+export async function addNewPublisher(publisherCreate: PublisherCreate): Promise<Publisher> {
     const formData = new FormData();
-    formData.append("publisher", JSON.stringify(publisher));
+    formData.append("publisher", JSON.stringify(publisherCreate.publisher));
 
-    if(publisher_img)
-        formData.append("image", publisher_img);
+    if(publisherCreate.image)
+        formData.append("image", publisherCreate.image);
 
     const res = await axiosInstance.post(`/publishers`, formData, {
         headers: {
@@ -52,14 +48,13 @@ export async function addNewPublisher(publisher: PublisherCreate, publisher_img?
 
 export async function editPublisher(
     publisher_id: Publisher["publisher_id"], 
-    publisherUpdate: PublisherUpdate,
-    publisher_img?: File
+    publisherUpdate: PublisherUpdate
 ): Promise<Publisher> {
     const formData = new FormData();
-    formData.append("publisher", JSON.stringify(publisherUpdate));
+    formData.append("publisher", JSON.stringify(publisherUpdate.publisher));
 
-    if(publisher_img)
-        formData.append("image", publisher_img);
+    if(publisherUpdate.image)
+        formData.append("image", publisherUpdate.image);
 
     const res = await axiosInstance.patch(`/publishers/${publisher_id}`, formData, {
         headers: {
@@ -72,11 +67,8 @@ export async function editPublisher(
     return parsed;
 }
 
-export async function deletePublisher(publisher_id: Publisher["publisher_id"]): Promise<boolean> {
-    const res = await axiosInstance.delete(`/publishers/${publisher_id}`);
+export async function deletePublisher(publisher_id: Publisher["publisher_id"]): Promise<true> {
+    await axiosInstance.delete(`/publishers/${publisher_id}`);
 
-    if(!("success" in res.data))
-        throw new Error(`Response data does not contain 'success' field: ${JSON.stringify(res.data)}`);
-
-    return res.data.success;
+    return true;
 }

@@ -1,11 +1,11 @@
 import { Button } from "react-bootstrap";
 import { useAppSelector } from "../../hooks/customRedux";
 import Dashboard from "../Dashboard";
-import { useNavigate } from "react-router-dom";
+import { useCustomPath } from "../useCustomPath";
 
 export function BooksPage() {
     const user = useAppSelector((state) => state.user);
-    const navigate = useNavigate();
+    const {gotoBooksCreate} = useCustomPath();
 
     return (
         <>
@@ -13,7 +13,7 @@ export function BooksPage() {
                 user && (
                     <Button
                         className="mb-3"
-                        onClick={() => navigate("/books/create")}
+                        onClick={() => gotoBooksCreate()}
                     >
                         Add New Book
                     </Button>

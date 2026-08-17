@@ -4,7 +4,7 @@ import * as AuthorService from "../API/services/AuthorService";
 import { SearchBar } from "../components/SearchBar";
 import defaultAuthorAvatar from "../placeholders/default-avatar.jpg"
 import { useState } from "react";
-import AuthorAddModal from "../components/Author/AuthorAddModal";
+import AuthorAddModal from "../components/Author/Modals/AuthorAddModal";
 import { ImageWithTitle } from "../components/ImageWithTitle";
 
 export function Testing(){
@@ -42,14 +42,14 @@ export function Testing(){
 
             <AuthorAddModal 
                 onAuthorAdded={setAuthor}
-                show={authorModalShow}
+                show={true}
                 onClose={() => {setAuthorModalShow(false)}}
             />
             
             <SearchBar 
                 element={searchAuthorElement}
                 onElementClick={() => {}}
-                search={AuthorService.searchAuthors}
+                search={((name) => AuthorService.searchAuthors({name}))}
             >
                 <Button
                     onClick={() => setAuthorModalShow(true)}

@@ -1,6 +1,6 @@
 import debug from "debug";
 
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { BASE_URL } from "../config";
 import * as AuthenticationService from "./services/AuthenticationService";
 
@@ -15,7 +15,7 @@ export const axiosInstance = axios.create({
     withCredentials: false,
     headers: {
         "Content-Type": "application/json",
-    }
+    },
 });
 
 axiosInstance.interceptors.request.use((config) => {
@@ -47,16 +47,12 @@ axiosInstance.interceptors.response.use(
         return response;
     },
     async (error) => {
-        const status = error.response ? error.response.status : "No response";
-
-        // unauthorized
-        if (status === 401){
-            log("unauthorized response, removing jwt from localStorage");
-            await AuthenticationService.logoutUser();
-        }
-
-        if(error.response && error.response.error){
-            log(`error: ${JSON.stringify(error.response.error)}`);
+        if(error instanceof AxiosError){    
+            // unauthorized
+            if (error.response?.status === 401){
+                log("unauthorized response, removing jwt from localStorage");
+                await AuthenticationService.logoutUser();
+            }
         }
 
         return Promise.reject(error);

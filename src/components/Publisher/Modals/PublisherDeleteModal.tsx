@@ -1,32 +1,37 @@
 import { Button, Modal } from "react-bootstrap";
-import { Author } from "../../API/models/Author";
 import { useState } from "react";
-import * as AuthorService from "../../API/services/AuthorService";
+import * as PublisherService from "../../../API/services/PublisherService";
+import { AxiosError } from "axios";
+import { Publisher } from "../../../API/models/Publisher";
 
-export interface AuthorDeleteModalProps{
-    author: Author;
+export interface PublisherDeleteModalProps{
+    publisher: Publisher;
 
     onClose: () => void;
-    onAuthorDeleted: (author: Author) => void;
+    onPublisherDeleted: (publisher: Publisher) => void;
 
     show?: boolean;
 }
 
-export function AuthorDeleteModal(props: AuthorDeleteModalProps){
+export function PublisherDeleteModal(props: PublisherDeleteModalProps){
     const [isLoading, setIsLoading] = useState<boolean>(false);
-    const [error, setError] = useState<string | null>(null);
+    const [apiError, setApiError] = useState<string | null>(null);
 
-    async function deleteAuthor(){
+    async function deletePublisher(){
         try{
             setIsLoading(true);
-            await AuthorService.deleteAuthor(props.author.author_id);
+            await PublisherService.deletePublisher(props.publisher.publisher_id);
 
-            props.onAuthorDeleted(props.author);
+            props.onPublisherDeleted(props.publisher);
             props.onClose();
         }
-        catch(err){
-            if(err instanceof Error)
-                setError(err.message);
+        catch(error){
+            if(error instanceof AxiosError)
+                setApiError(error.response?.data.error);
+            else{
+                console.error("Error adding publisher:", error);
+                setApiError("Unknown error occured!");
+            }
         }
         finally{
             setIsLoading(false);
@@ -47,11 +52,14 @@ export function AuthorDeleteModal(props: AuthorDeleteModalProps){
         >
             <Modal.Header closeButton>
             <Modal.Title>
-                Confirm Delete Author {props.author.author_name}
+                Confirm Delete Publisher {props.publisher.publisher_name}
             </Modal.Title>
             </Modal.Header>
             <Modal.Body>
-                Are you sure you want to delete this author?
+                <p>Are you sure you want to delete this publisher?</p>
+                <p className="text-danger">
+                    {apiError}
+                </p>
             </Modal.Body>
             <Modal.Footer>
                 <Button 
@@ -64,7 +72,7 @@ export function AuthorDeleteModal(props: AuthorDeleteModalProps){
                 <Button 
                     variant="danger" 
                     disabled={isLoading}
-                    onClick={deleteAuthor} 
+                    onClick={deletePublisher} 
                 >
                     Delete
                 </Button>

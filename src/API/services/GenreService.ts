@@ -2,16 +2,8 @@ import { axiosInstance } from "../axiosConfig";
 import { Genre, genreModel } from "../models/Genre";
 import { GenreCreate, GenreUpdate } from "../schemas/GenreSchema";
 
-export async function getGenres(options: {keyword?: string, exclude_genre_ids?: string[]}): Promise<Genre[]> {
-    const params: Record<string, string> = {};
-
-    if(options.keyword)
-        params.keyword = options.keyword;
-
-    if(options.exclude_genre_ids && options.exclude_genre_ids.length > 0)
-        params.exclude_genre_ids = options.exclude_genre_ids.join(",");
-
-    const res = await axiosInstance.get(`/genres`, { params });
+export async function getGenres(params: {keyword?: string, exclude_genre_ids?: string[], page?: number}): Promise<Genre[]> {
+    const res = await axiosInstance.get(`/genres`, { params: {...params, exclude_genre_ids: params.exclude_genre_ids?.join(",")} });
 
     const data = res.data as unknown;
 
@@ -38,12 +30,12 @@ export async function getGenre(genre_id: Genre["genre_id"]): Promise<Genre>{
     return parsed;
 }
 
-export async function addNewGenre(genre: GenreCreate, genre_img?: File): Promise<Genre> {
+export async function addNewGenre(genreCreate: GenreCreate): Promise<Genre> {
     const formData = new FormData();
-    formData.append("genre", JSON.stringify(genre));
+    formData.append("genre", JSON.stringify(genreCreate.genre));
 
-    if(genre_img)
-        formData.append("image", genre_img);
+    if(genreCreate.image)
+        formData.append("image", genreCreate.image);
 
     const res = await axiosInstance.post(`/genres`, formData, {
         headers: {
@@ -59,13 +51,12 @@ export async function addNewGenre(genre: GenreCreate, genre_img?: File): Promise
 export async function editGenre(
     genre_id: Genre["genre_id"], 
     genreUpdate: GenreUpdate,
-    genre_img?: File
 ): Promise<Genre> {
     const formData = new FormData();
-    formData.append("genre", JSON.stringify(genreUpdate));
+    formData.append("genre", JSON.stringify(genreUpdate.genre));
 
-    if(genre_img)
-        formData.append("image", genre_img);
+    if(genreUpdate.image)
+        formData.append("image", genreUpdate.image);
 
     const res = await axiosInstance.patch(`/genres/${genre_id}`, formData, {
         headers: {
@@ -78,11 +69,8 @@ export async function editGenre(
     return parsed;
 }
 
-export async function deleteGenre(genre_id: Genre["genre_id"]): Promise<boolean> {
-    const res = await axiosInstance.delete(`/genres/${genre_id}`);
+export async function deleteGenre(genre_id: Genre["genre_id"]): Promise<true> {
+    await axiosInstance.delete(`/genres/${genre_id}`);
 
-    if(!("success" in res.data))
-        throw new Error(`Response data does not contain 'success' field: ${JSON.stringify(res.data)}`);
-
-    return res.data.success;
+    return true;
 }

@@ -13,8 +13,7 @@ export interface SearchBarProps<_T>{
 
 export function SearchBar<_T,>(props: SearchBarProps<_T>){
     const [keyword, setKeyword] = useState<string>("");
-    const [isWaiting, setIsWaiting] = useState<boolean>(false);
-    const [currentList, setCurrentList] = useState<_T[]>([]);
+    const [currentList, setCurrentList] = useState<_T[] | null>(null);
 
     const [isShowingResult, setIsShowingResult] = useState<boolean>(false);
 
@@ -29,27 +28,24 @@ export function SearchBar<_T,>(props: SearchBarProps<_T>){
                 return;
             }
 
-            setIsWaiting(true);
+            setCurrentList(null);
             const res: _T[] = await props.search(keyword);
             setCurrentList(res);
         }
         catch(err){
 
         }
-        finally{
-            setIsWaiting(false);
-        }
     }
 
     function onClickHandler(item: _T): void{
         props.onElementClick(item);
         setCurrentList([]);
+        setKeyword("");
         setIsShowingResult(false)
     }
 
     // debouncing for search keyword
     useEffect(() => {
-        setIsWaiting(true);
         const handler = setTimeout(() => {
             search(keyword);
         }, props.debouncingTimeMs ?? 500)
@@ -75,9 +71,7 @@ export function SearchBar<_T,>(props: SearchBarProps<_T>){
                 className="overflow-y-scroll"
             >
                 {
-                    isWaiting ? (
-                        <Spinner />
-                    ) :
+                    currentList ?
                     currentList.map((value) => (
                         <ListGroup.Item 
                             action
@@ -87,7 +81,10 @@ export function SearchBar<_T,>(props: SearchBarProps<_T>){
                         >
                             {props.element(value)}
                         </ListGroup.Item>
-                    ))
+                    )) :
+                    (
+                        <Spinner />
+                    )
                 }
             </ListGroup>
         </>

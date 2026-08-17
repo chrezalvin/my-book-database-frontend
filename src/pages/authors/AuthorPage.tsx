@@ -1,4 +1,4 @@
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { Author } from "../../API/models/Author";
 import { useEffect, useState } from "react";
 import * as AuthorService from "../../API/services/AuthorService";
@@ -6,13 +6,14 @@ import Dashboard from "../Dashboard";
 import CardSimple from "../../components/CardSimple";
 import defaultAvatar from "../../placeholders/default-avatar.jpg";
 import { Button } from "react-bootstrap";
-import AuthorEditModal from "../../components/Author/AuthorEditModal";
+import AuthorEditModal from "../../components/Author/Modals/AuthorEditModal";
 import { useAppSelector } from "../../hooks/customRedux";
-import { AuthorDeleteModal } from "../../components/Author/AuthorDeleteModal";
+import { AuthorDeleteModal } from "../../components/Author/Modals/AuthorDeleteModal";
+import { useCustomPath } from "../useCustomPath";
 
 export function AuthorPage() {
     const user = useAppSelector((state) => state.user);
-    const navigate = useNavigate();
+    const {gotoBooks, gotoBooksCreate} = useCustomPath();
 
     const {author_id} = useParams<{author_id: string}>();
 
@@ -77,7 +78,7 @@ export function AuthorPage() {
                     <Button
                         className="ms-2"
                         variant="success"
-                        onClick={() => navigate(`/books/create?author_id=${author_id}`)}
+                        onClick={() => gotoBooksCreate({author_id})}
                     >
                         Add book by this author
                     </Button>
@@ -96,7 +97,7 @@ export function AuthorPage() {
                     <AuthorEditModal 
                         initialAuthor={author}
                         onClose={() => setShowEditAuthorModal(false)}
-                        onAuthorEdit={setAuthor}
+                        onAuthorEdited={setAuthor}
                         show={showEditAuthorModal && user !== null}
                     />
                 )
@@ -105,7 +106,7 @@ export function AuthorPage() {
                 author && (
                     <AuthorDeleteModal 
                         author={author}
-                        onAuthorDeleted={() => navigate("/books")}
+                        onAuthorDeleted={() => gotoBooks()}
                         onClose={() => setShowDeleteAuthorModal(false)}
                         show={showDeleteAuthorModal && user !== null}
                     />

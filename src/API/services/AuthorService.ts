@@ -2,12 +2,8 @@ import { axiosInstance } from "../axiosConfig";
 import { Author, authorModel } from "../models/Author";
 import { AuthorCreate, AuthorUpdate } from "../schemas/AuthorSchema";
 
-export async function searchAuthors(authorName: string): Promise<Author[]> {
-    const res = await axiosInstance.get(`/authors`, {
-        params: {
-            name: authorName,
-        }
-    });
+export async function searchAuthors(params?: {name?: string, page?: number}): Promise<Author[]> {
+const res = await axiosInstance.get(`/authors`, {params});
 
     const data = res.data as unknown;
 
@@ -30,14 +26,15 @@ export async function getAuthorById(author_id: Author["author_id"]): Promise<Aut
     const parsed = authorModel.parse(res.data);
 
     return parsed;
-}
+} 
 
-export async function addNewAuthor(authorCreate: AuthorCreate, authorImg?: File): Promise<Author> {
+export async function addNewAuthor(authorCreate: AuthorCreate): Promise<Author> {
     const formData = new FormData();
-    formData.append("author", JSON.stringify(authorCreate));
 
-    if(authorImg)
-        formData.append("image", authorImg);
+    formData.append("author", JSON.stringify(authorCreate.author));
+
+    if(authorCreate.image)
+        formData.append("image", authorCreate.image);
 
     const res = await axiosInstance.post(`/authors`, formData, {
         headers: {
@@ -53,13 +50,12 @@ export async function addNewAuthor(authorCreate: AuthorCreate, authorImg?: File)
 export async function editAuthor(
     author_id: Author["author_id"], 
     authorUpdate: AuthorUpdate,
-    authorImg?: File
 ): Promise<Author> {
     const formData = new FormData();
-    formData.append("author", JSON.stringify(authorUpdate));
+    formData.append("author", JSON.stringify(authorUpdate.author));
 
-    if(authorImg)
-        formData.append("image", authorImg);
+    if(authorUpdate.image)
+        formData.append("image", authorUpdate.image);
 
     const res = await axiosInstance.patch(`/authors/${author_id}`, formData, {
         headers: {
@@ -72,11 +68,8 @@ export async function editAuthor(
     return parsed;
 }
 
-export async function deleteAuthor(author_id: Author["author_id"]): Promise<boolean> {
-    const res = await axiosInstance.delete(`/authors/${author_id}`);
+export async function deleteAuthor(author_id: Author["author_id"]): Promise<true> {
+    await axiosInstance.delete(`/authors/${author_id}`);
 
-    if(!("success" in res.data))
-        throw new Error(`Response data does not contain 'success' field: ${JSON.stringify(res.data)}`);
-
-    return res.data.success;
+    return true;
 }

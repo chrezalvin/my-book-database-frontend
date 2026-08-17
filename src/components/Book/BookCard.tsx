@@ -1,6 +1,5 @@
-import { Card, Button, OverlayTrigger, Tooltip } from "react-bootstrap";
+import { Card, Button, OverlayTrigger, Tooltip, Badge } from "react-bootstrap";
 import { Book } from "../../API/models/Book";
-import GenreLabel from "../GenreLabel";
 
 interface BookCardProps {
   book: Book;
@@ -15,14 +14,6 @@ interface BookCardProps {
 export default function BookCard(props: BookCardProps) {
   const publisher = props.book.publisher;
   const author = props.book.author;
-  
-  const genreLabels = props.book.genres?.map((genre) => (
-    <GenreLabel 
-      key={genre.genre_id} 
-      genre={genre}
-      onClick={props.onGenreClick}
-    />
-  ));
 
   return (
     <Card className="h-100 shadow-sm">
@@ -94,7 +85,18 @@ export default function BookCard(props: BookCardProps) {
         }
 
         <div className="mb-2 d-flex flex-wrap gap-1">
-          {genreLabels}
+          {
+            props.book.genres.map((g) => (
+              <Badge 
+                key={g.genre_id}
+                bg="secondary"
+                className="align-items-center py-2"
+                onClick={() => props.onGenreClick?.(g)}
+              >
+                {g.genre_name}
+              </Badge>
+            ))
+          }
         </div>
 
         <div className="mt-auto d-flex gap-2">

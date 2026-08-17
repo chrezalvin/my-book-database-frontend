@@ -1,21 +1,22 @@
 import { Container } from "react-bootstrap";
 import Header from "../../components/Header";
-import { Outlet, useNavigate } from "react-router-dom";
+import { Outlet } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../hooks/customRedux";
 import * as AuthenticationService from "../../API/services/AuthenticationService";
 import { assignUser, resetUser } from "../../store/User";
 import { useEffect } from "react";
+import { useCustomPath } from "../useCustomPath";
 
 export function BooksLayout() {
     const user = useAppSelector((state) => state.user);
-    const navigate = useNavigate();
+    const {gotoBooks, gotoLogin} = useCustomPath();
     const dispatch = useAppDispatch();
 
     async function logout(){
         await AuthenticationService.logoutUser();
         dispatch(resetUser());
 
-        navigate("/books");
+        gotoBooks();
     }
 
     async function checkIfLoggedin(){
@@ -39,9 +40,9 @@ export function BooksLayout() {
         <Container className="pb-4">
             <Header 
                 user={user}
-                onGoToLogin={() => navigate("/login")}
+                onGoToLogin={() => gotoLogin()}
                 onLogout={logout}
-                onGoToBooks={() => navigate("/books")}
+                onGoToBooks={() => gotoBooks()}
             />
 
             <main className="container mt-4">

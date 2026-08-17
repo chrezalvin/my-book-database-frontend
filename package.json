@@ -1,6 +1,6 @@
 {
   "name": "my-book-database-frontend",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "dependencies": {
     "@reduxjs/toolkit": "^2.11.2",
@@ -27,7 +27,9 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "react-scripts build"
+    "build": "react-scripts build",
+    "build:nodemon": "react-scripts build",
+    "devstart": "nodemon"
   },
   "eslintConfig": {
     "extends": [
@@ -46,8 +48,14 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  },
+  }, 
   "devDependencies": {
     "@types/debug": "^4.1.12"
+  },
+  "nodemonConfig": {
+    "exec": "npm run build:nodemon",
+    "ignore": [
+      "*"
+    ]
   }
 }

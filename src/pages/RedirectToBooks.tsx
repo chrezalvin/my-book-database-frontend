@@ -1,11 +1,11 @@
-import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
+import { useCustomPath } from "./useCustomPath";
 
 function RedirectToBooks(){
-    const navigate = useNavigate();
+    const {gotoBooks} = useCustomPath();
 
     useEffect(() => {
-        navigate("/books");
+        gotoBooks();
     }, [])
 
     return (

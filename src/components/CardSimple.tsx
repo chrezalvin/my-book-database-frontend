@@ -15,7 +15,22 @@ export default function CardSimple(props: CardSimpleProps) {
             <Row className="align-items-center md-align-items-start g-4">
                 {/* Left Side: Image Column */}
                 <Col xs={12} md={4} className="text-center text-md-start">
-                    {
+                    <div style={{width: "200px", height: "200px", borderRadius: "0.25rem"}}>
+                        {
+                            props.isLoading ? (
+                                <Placeholder animation="glow" />
+                            ) : (
+                                <Image
+                                    className="object-fit-cover"
+                                    src={props.imageUrl ?? props.defaultImageUrl}
+                                    alt={props.imageUrl ? props.title : "Default Image"}
+                                    // rounded // Adds a slight border radius
+                                    fluid   // Makes it responsive, replacing rigid max-width styles
+                                />
+                            )
+                        }
+                    </div>
+                    {/* {
                         props.isLoading ? (
                             <Placeholder 
                                 animation="glow" 
@@ -30,7 +45,7 @@ export default function CardSimple(props: CardSimpleProps) {
                                 style={{ maxWidth: "200px", maxHeight: "200px", objectFit: "cover" }}
                             />
                         )
-                    }
+                    } */}
                     
                 </Col>
         

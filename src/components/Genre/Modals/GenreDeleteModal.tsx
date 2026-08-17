@@ -1,7 +1,8 @@
 import { Button, Modal } from "react-bootstrap";
-import { Genre } from "../../API/models/Genre";
 import { useState } from "react";
-import * as GenreService from "../../API/services/GenreService";
+import * as GenreService from "../../../API/services/GenreService";
+import { AxiosError } from "axios";
+import { Genre } from "../../../API/models/Genre";
 
 export interface GenreDeleteModalProps{
     genre: Genre;
@@ -14,7 +15,7 @@ export interface GenreDeleteModalProps{
 
 export function GenreDeleteModal(props: GenreDeleteModalProps){
     const [isLoading, setIsLoading] = useState<boolean>(false);
-    const [error, setError] = useState<string | null>(null);
+    const [apiError, setApiError] = useState<string | null>(null);
 
     async function deleteGenre(){
         try{
@@ -24,9 +25,13 @@ export function GenreDeleteModal(props: GenreDeleteModalProps){
             props.onGenreDeleted(props.genre);
             props.onClose();
         }
-        catch(err){
-            if(err instanceof Error)
-                setError(err.message);
+        catch(error){
+            if(error instanceof AxiosError)
+                setApiError(error.response?.data.error);
+            else{
+                console.error("Error adding genre:", error);
+                setApiError("Unknown error occured!");
+            }
         }
         finally{
             setIsLoading(false);
@@ -51,7 +56,10 @@ export function GenreDeleteModal(props: GenreDeleteModalProps){
             </Modal.Title>
             </Modal.Header>
             <Modal.Body>
-                Are you sure you want to delete this genre? Deleting the genre also deletes all associated genre from the books
+                <p>Are you sure you want to delete this genre?</p>
+                <p className="text-danger">
+                    {apiError}
+                </p>
             </Modal.Body>
             <Modal.Footer>
                 <Button 

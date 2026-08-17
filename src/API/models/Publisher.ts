@@ -6,6 +6,7 @@ export const publisherModel = z.object({
     publisher_name: z.string(),
     publisher_description: z.string().nullable(),
     publisher_img: z.string().nullable(),
+    publisher_aliases: z.array(z.string()),
 });
 
 export type Publisher = z.infer<typeof publisherModel>;

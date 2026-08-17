@@ -4,18 +4,17 @@ import { Book } from "../API/models/Book";
 
 import {
     Alert,
-    Button,
     Col,
     Row,
 } from "react-bootstrap";
 import BookCard from "../components/Book/BookCard";
-import { useNavigate } from "react-router-dom";
 import { useAppSelector } from "../hooks/customRedux";
 import BookSearch from "../components/BookSearch";
 import DeleteBookModal from "../components/Book/DeleteBookModal";
 import BookDetailsModal from "../components/Book/BookDetailsModal";
+import { useCustomPath } from "./useCustomPath";
 
-export interface Dashboard {
+export interface DashboardProps {
   additionalParams?: {
     author_id?: string;
     publisher_id?: string;
@@ -23,10 +22,10 @@ export interface Dashboard {
   }
 }
 
-function Dashboard(props: Dashboard) {
+function Dashboard(props: DashboardProps) {
     const user = useAppSelector((state) => state.user);
 
-    const navigate = useNavigate();
+    const {gotoAuthor, gotoBooksEdit, gotoGenre, gotoPublisher} = useCustomPath();
 
     const [books, setBooks] = useState<Book[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -45,22 +44,6 @@ function Dashboard(props: Dashboard) {
     const [deleteError, setDeleteError] = useState<string | null>(null);
 
     const [searchKeyword, setSearchKeyword] = useState<string | null>(null);
-
-    function gotoAuthorPage(author: Book["author"]){
-      navigate(`/authors/${author?.author_id}`);
-    }
-
-    function gotoPublisherPage(publisher: Book["publisher"]){
-      navigate(`/publishers/${publisher?.publisher_id}`);
-    }
-
-    function gotoEditPage(book: Book){
-      navigate(`/books/edit/${book.book_id}`);
-    }
-
-    function gotoGenrePage(genre: Book["genres"][number]){
-      navigate(`/genres/${genre.genre_id}`);
-    }
 
     async function deleteSelectedBook(){
       if(!selectedBookToDelete)
@@ -197,10 +180,10 @@ function Dashboard(props: Dashboard) {
               book={book}
               onView={setSelectedBook}
               onDelete={allowedToEdit ? setSelectedBookToDelete : undefined}
-              onEdit={allowedToEdit ? gotoEditPage : undefined}
-              onAuthorClick={gotoAuthorPage}
-              onPublisherClick={gotoPublisherPage}
-              onGenreClick={gotoGenrePage}
+              onEdit={allowedToEdit ? (book) => gotoBooksEdit(book.book_id) : undefined}
+              onAuthorClick={(author) => gotoAuthor(author.author_id)}
+              onPublisherClick={(publisher) => gotoPublisher(publisher.publisher_id)}
+              onGenreClick={(genre) => gotoGenre(genre.genre_id)}
             />
           </Col>)
         )}

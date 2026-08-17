@@ -13,6 +13,7 @@ export const bookModel = z.object({
     language: z.string(),
     isbn: z.string().nullable(),
     edition: z.string().nullable(),
+    book_aliases: z.array(z.string()),
 
     author_id: authorModel.shape.author_id.nullable(), 
     publisher_id: publisherModel.shape.publisher_id.nullable(),

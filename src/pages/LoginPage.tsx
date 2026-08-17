@@ -1,13 +1,14 @@
 // pages/LoginPage.tsx
 import { FormEvent, useEffect, useState } from "react";
 import { Card, Form, Button, Alert, Spinner } from "react-bootstrap";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import * as AuthenticationService from "../API/services/AuthenticationService";
 import { useAppDispatch } from "../hooks/customRedux";
 import { assignUser } from "../store/User";
+import { useCustomPath } from "./useCustomPath";
 
 function LoginPage() {
-  const navigate = useNavigate();
+  const {gotoBooks} = useCustomPath();
   const dispatch = useAppDispatch();
 
   const [email, setEmail] = useState("");
@@ -21,7 +22,7 @@ function LoginPage() {
         try{
             const userData = await AuthenticationService.getUserData();
             dispatch(assignUser(userData));
-            navigate("/books");
+            gotoBooks();
         }
         catch(err){
             // not authenticated, do nothing
@@ -46,7 +47,7 @@ function LoginPage() {
       const userData = await AuthenticationService.getUserData();
       dispatch(assignUser(userData));
 
-      navigate("/books");
+      gotoBooks();
     } 
     catch (err) {
       setError("Invalid email or password");
@@ -119,7 +120,7 @@ function LoginPage() {
       <Link 
           to={"/books"}
           className="mt-3 text-center"
-          onClick={() => navigate("/books")}
+          onClick={() => gotoBooks()}
           style={{ cursor: "pointer" }}
       >
           Go to Books Page

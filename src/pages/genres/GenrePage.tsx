@@ -1,4 +1,4 @@
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { Genre } from "../../API/models/Genre";
 import { useEffect, useState } from "react";
 import * as GenreService from "../../API/services/GenreService";
@@ -6,18 +6,18 @@ import Dashboard from "../Dashboard";
 import CardSimple from "../../components/CardSimple";
 import defaultAvatar from "../../placeholders/default-avatar.jpg";
 import { Button } from "react-bootstrap";
-import GenreEditModal from "../../components/Genre/GenreEditModal";
+import GenreEditModal from "../../components/Genre/Modals/GenreEditModal";
 import { useAppSelector } from "../../hooks/customRedux";
-import { GenreDeleteModal } from "../../components/Genre/GenreDeleteModal";
+import { GenreDeleteModal } from "../../components/Genre/Modals/GenreDeleteModal";
+import { useCustomPath } from "../useCustomPath";
 
-export function GenrePage() {
+export function GenreBookPage() {
     const user = useAppSelector((state) => state.user);
-    const navigate = useNavigate();
+    const {gotoBooksCreate,gotoBooks} = useCustomPath();
 
     const {genre_id} = useParams<{genre_id: string}>();
 
     const [genre, setGenre] = useState<Genre | null>(null);
-    const [isGenreLoading, setGenreLoading] = useState<boolean>(true);
 
     const [showEditGenreModal, setShowEditGenreModal] = useState(false);
     const [showDeleteGenreModal, setShowDeleteGenreModal] = useState<boolean>(false);
@@ -27,15 +27,12 @@ export function GenrePage() {
             return;
 
         try{
-            setGenreLoading(true);
+            setGenre(null);
             const res = await GenreService.getGenre(genre_id);
             setGenre(res);
         }
         catch(error){
             console.error("Error fetching genre:", error);
-        }
-        finally{
-            setGenreLoading(false);
         }
     }
 
@@ -50,7 +47,7 @@ export function GenrePage() {
                 description={genre?.genre_description ?? "No description"}
                 imageUrl={genre?.genre_img ?? undefined}
                 defaultImageUrl={defaultAvatar}
-                isLoading={isGenreLoading}
+                isLoading={genre !== null}
             />
             {
                 user && (
@@ -77,7 +74,7 @@ export function GenrePage() {
                     <Button
                         className="ms-2"
                         variant="success"
-                        onClick={() => navigate(`/books/create?genre_id=${genre_id}`)}
+                        onClick={() => gotoBooksCreate({genre_id})}
                     >
                         Add book with this genre
                     </Button>
@@ -96,7 +93,7 @@ export function GenrePage() {
                     <GenreEditModal 
                         initialGenre={genre}
                         onClose={() => setShowEditGenreModal(false)}
-                        onGenreEdit={setGenre}
+                        onGenreEdited={setGenre}
                         show={showEditGenreModal && user !== null}
                     />
                 )
@@ -106,7 +103,7 @@ export function GenrePage() {
                 genre && (
                     <GenreDeleteModal 
                         genre={genre}
-                        onGenreDeleted={() => navigate("/books")}
+                        onGenreDeleted={() => gotoBooks()}
                         onClose={() => setShowDeleteGenreModal(false)}
                         show={showDeleteGenreModal && user !== null}
                     />
@@ -116,4 +113,4 @@ export function GenrePage() {
     );
 }
 
-export default GenrePage;
+export default GenreBookPage;
